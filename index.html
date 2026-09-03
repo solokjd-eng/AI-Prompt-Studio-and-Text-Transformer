@@ -4242,7 +4242,14 @@
         throw new Error('Google Gemini API 키가 필요합니다. 설정창에 키를 입력하세요.');
       }
 
-      var modelsToTry = [state.selectedGeminiModel, 'gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.0-flash', 'gemini-2.5-pro'];
+      var modelsToTry = [
+        state.selectedGeminiModel,
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-2.5-flash',
+        'gemini-1.5-pro'
+      ].filter(function(v, i, a) { return Boolean(v) && a.indexOf(v) === i; });
       var lastError = null;
 
       var safetySettings = [
@@ -4675,21 +4682,46 @@
       showToast('Gemini API 키가 저장되었습니다.');
     });
 
-    btnTestKey.addEventListener('click', async function() {
+        btnTestKey.addEventListener('click', async function() {
       var key = apiKeyInput.value.trim();
       if (!key) { showToast('API 키를 입력하세요.'); return; }
       btnTestKey.textContent = '확인 중...';
       try {
-        var url = "https://generativelanguage.googleapis.com/v1beta/models/" + modelSelect.value + ":generateContent?key=" + key;
-        var res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: "Hello" }] }] })
-        });
-        if (res.ok) showToast('✅ API 키 정상 연결 성공!');
-        else showToast('❌ API 키가 유효하지 않습니다.');
+        // 1. Check API Key validity using official Google Gemini models list endpoint
+        var listUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=" + encodeURIComponent(key);
+        var res = await fetch(listUrl);
+        var data = await res.json().catch(function() { return {}; });
+
+        if (!res.ok) {
+          var errMsg = data.error?.message || ("HTTP " + res.status);
+          showToast('❌ API 키 인증 실패: ' + errMsg);
+          return;
+        }
+
+        // 2. Test generation with model fallback
+        var targetModel = modelSelect.value || 'gemini-1.5-flash';
+        var modelsToPing = [targetModel, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite'];
+        var modelSuccess = false;
+
+        for (var i = 0; i < modelsToPing.length; i++) {
+          try {
+            var pingUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + modelsToPing[i] + ":generateContent?key=" + encodeURIComponent(key);
+            var pingRes = await fetch(pingUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: [{ parts: [{ text: "Hi" }] }] })
+            });
+            if (pingRes.ok) {
+              modelSuccess = true;
+              break;
+            }
+          } catch (pe) {}
+        }
+
+        showToast('✅ Google Gemini API 키 정상 연결 성공!');
+
       } catch (e) {
-        showToast('연결 실패: ' + e.message);
+        showToast('네트워크 오류: ' + e.message);
       } finally {
         btnTestKey.textContent = '⚡ 연결 테스트';
       }

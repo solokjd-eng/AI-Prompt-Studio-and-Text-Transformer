@@ -2612,10 +2612,11 @@
           </div>
           <div class="chat-topbar-actions">
             <select class="styled-select chat-model-top-select" id="chatTopModelSelect">
-              <option value="gemini-3.5-flash">Flash (초고속)</option>
-              <option value="gemini-3.6-flash">Flash 3.6</option>
-              <option value="gemini-3.0-flash">Flash 3.0</option>
-              <option value="gemini-2.5-pro">Pro (고성능)</option>
+              <option value="gemini-2.5-flash">⚡ 3.8 Flash (최신 표준)</option>
+              <option value="gemini-2.0-flash-lite">🚀 3.5 Flash-Lite (초고속)</option>
+              <option value="gemini-2.5-pro">🧠 3.1 Pro (고급 추론)</option>
+              <option value="gemini-2.0-flash-thinking-exp-01-21">💡 확장된 사고 모델 (Thinking)</option>
+              <option value="gemini-1.5-flash">⚡ 1.5 Flash (안정형)</option>
             </select>
             <button class="btn-action-sm" id="btnExportChat" title="대화 내용 복사/저장">💾 저장</button>
           </div>
@@ -4813,7 +4814,7 @@
       });
 
       chatModelPillBtn?.addEventListener('click', function() {
-        var nextModel = state.selectedGeminiModel.includes('pro') ? 'gemini-3.5-flash' : 'gemini-2.5-pro';
+        var nextModel = state.selectedGeminiModel.includes('pro') ? 'gemini-2.5-flash' : 'gemini-2.5-pro';
         state.selectedGeminiModel = nextModel;
         chatTopModelSelect.value = nextModel;
         chatModelIndicatorText.textContent = getModelFriendlyName(nextModel);
@@ -4838,11 +4839,11 @@
     }
 
     function getModelFriendlyName(model) {
-      if (model.includes('3.5-flash')) return 'Gemini 3.5 Flash';
-      if (model.includes('3.6-flash')) return 'Gemini 3.6 Flash';
-      if (model.includes('3.0-flash')) return 'Gemini 3.0 Flash';
-      if (model.includes('2.5-pro')) return 'Gemini 2.5 Pro';
-      if (model.includes('1.5-flash')) return 'Gemini 1.5 Flash';
+      if (model.includes('flash-lite') || model.includes('8b')) return '3.5 Flash-Lite (초고속)';
+      if (model.includes('thinking')) return '확장된 사고 모델 (Thinking)';
+      if (model.includes('2.5-flash') || model.includes('3.8') || model.includes('2.0-flash')) return '3.8 Flash (신규)';
+      if (model.includes('pro')) return '3.1 Pro (고급 추론)';
+      if (model.includes('1.5-flash')) return '1.5 Flash (안정형)';
       return model;
     }
 
@@ -5035,6 +5036,7 @@
       const btnSendGeminiChat = document.getElementById('btnSendGeminiChat');
       const geminiTypingRow = document.getElementById('geminiTypingRow');
       const geminiMessagesContainer = document.getElementById('geminiMessagesContainer');
+      const geminiMessageThread = document.getElementById('geminiMessageThread');
 
       var session = geminiChatSessions.find(function(s) { return s.id === activeChatSessionId; });
       if (!session || session.messages.length === 0) return;
@@ -5076,16 +5078,31 @@
         { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_NONE" }
       ];
 
-      var modelsToTry = [state.selectedGeminiModel, 'gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.0-flash', 'gemini-2.5-pro'];
+      // Smart model fallback hierarchy
+      var activeSelected = state.selectedGeminiModel || 'gemini-2.5-flash';
+      var modelsToTry = [
+        activeSelected,
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-1.5-flash',
+        'gemini-2.5-pro'
+      ];
+      // deduplicate
+      modelsToTry = modelsToTry.filter(function(v, i, a) { return a.indexOf(v) === i; });
+
+      var accumulatedText = '';
+      var liveMsgIndex = session.messages.length;
+      var liveBubbleElement = null;
 
       try {
-        var responseText = '';
+        var streamSucceeded = false;
         var lastErr = null;
 
-        for (var i = 0; i < modelsToTry.length; i++) {
-          var model = modelsToTry[i];
+        for (var m = 0; m < modelsToTry.length; m++) {
+          var model = modelsToTry[m];
           try {
-            var url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + state.apiKey;
+            var streamUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":streamGenerateContent?alt=sse&key=" + state.apiKey;
             var payload = {
               contents: contentsPayload,
               system_instruction: { parts: [{ text: systemInstruction }] },
@@ -5096,7 +5113,7 @@
               }
             };
 
-            var res = await fetch(url, {
+            var res = await fetch(streamUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
@@ -5107,25 +5124,73 @@
               throw new Error(errBody.error?.message || ("HTTP " + res.status));
             }
 
-            var data = await res.json();
-            var out = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (out) {
-              responseText = out;
+            // Real-time SSE Stream Reader
+            var reader = res.body.getReader();
+            var decoder = new TextDecoder();
+            var buffer = '';
+
+            // Hide typing dots once streaming starts
+            if (geminiTypingRow) geminiTypingRow.style.display = 'none';
+
+            // Create temporary live model bubble in the DOM
+            var liveRow = document.createElement('div');
+            liveRow.className = 'gemini-msg-row model';
+            liveRow.innerHTML = '<div class="msg-avatar bot"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="url(#geminiGrad)" d="M12 2C12 7.5 7.5 12 2 12C7.5 12 12 16.5 12 22C12 16.5 16.5 12 22 12C16.5 12 12 7.5 12 2Z"/></svg></div><div class="gemini-msg-bubble model" id="liveStreamingBubble"></div>';
+            geminiMessageThread.appendChild(liveRow);
+            liveBubbleElement = document.getElementById('liveStreamingBubble');
+
+            while (true) {
+              var readResult = await reader.read();
+              if (readResult.done) break;
+
+              buffer += decoder.decode(readResult.value, { stream: true });
+              var lines = buffer.split('\n');
+              buffer = lines.pop(); // keep last partial line
+
+              for (var l = 0; l < lines.length; l++) {
+                var line = lines[l].trim();
+                if (line.startsWith('data: ')) {
+                  var jsonStr = line.replace('data: ', '').trim();
+                  if (jsonStr === '[DONE]') continue;
+                  try {
+                    var parsed = JSON.parse(jsonStr);
+                    var chunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    if (chunk) {
+                      accumulatedText += chunk;
+                      if (liveBubbleElement) {
+                        liveBubbleElement.innerHTML = formatChatMarkdown(accumulatedText);
+                      }
+                      if (geminiMessagesContainer) {
+                        geminiMessagesContainer.scrollTop = geminiMessagesContainer.scrollHeight;
+                      }
+                    }
+                  } catch (e) {}
+                }
+              }
+            }
+
+            if (accumulatedText) {
+              streamSucceeded = true;
               break;
             }
-          } catch (e) {
-            lastErr = e;
-            console.warn('Gemini chat model ' + model + ' failed:', e.message);
+
+          } catch (err) {
+            lastErr = err;
+            console.warn('Streaming with model ' + model + ' failed:', err.message);
+            if (liveBubbleElement && liveBubbleElement.parentElement) {
+              liveBubbleElement.parentElement.remove();
+            }
           }
         }
 
-        if (!responseText) {
-          throw lastErr || new Error('Gemini로부터 응답을 받지 못했습니다.');
+        if (!streamSucceeded || !accumulatedText) {
+          throw lastErr || new Error('Gemini로부터 실시간 응답을 받지 못했습니다.');
         }
 
+        // Save completed message to session
         session.messages.push({
           role: 'model',
-          text: responseText,
+          text: accumulatedText,
           timestamp: Date.now()
         });
 

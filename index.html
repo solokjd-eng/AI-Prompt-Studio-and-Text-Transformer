@@ -2243,6 +2243,79 @@
       color: #e3e3e3;
     }
 
+
+    /* Code Block & Prompt Box with Top-Right Copy Button in Chat */
+    .gemini-code-block-wrapper {
+      position: relative;
+      background: #1e1f20;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      margin: 12px 0;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #282a2c;
+      padding: 6px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      color: #9aa0a6;
+      font-weight: 600;
+    }
+    .code-lang-tag {
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: 'Fira Code', monospace;
+      color: #a8c7fa;
+      font-weight: 700;
+    }
+    .btn-copy-code {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e3e3e3;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .btn-copy-code:hover {
+      background: #4285f4;
+      border-color: #4285f4;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(66, 133, 244, 0.4);
+    }
+    .btn-copy-code.copied {
+      background: #10b981 !important;
+      border-color: #10b981 !important;
+      color: #fff !important;
+    }
+    .gemini-code-block-wrapper pre {
+      margin: 0 !important;
+      padding: 14px !important;
+      background: transparent !important;
+      border: none !important;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #f1f3f4;
+    }
+    .gemini-code-block-wrapper pre code {
+      background: transparent !important;
+      padding: 0 !important;
+      border: none !important;
+      font-family: 'Fira Code', monospace;
+    }
+
 </style>
 </head>
 <body>
@@ -5288,6 +5361,28 @@
       });
     }
 
+    
+    // Global Code Snippet Copy Helper
+    window.copyCodeSnippet = function(btn) {
+      var wrapper = btn.closest('.gemini-code-block-wrapper');
+      if (!wrapper) return;
+      var codeEl = wrapper.querySelector('code');
+      if (!codeEl) return;
+      var text = codeEl.innerText || codeEl.textContent || '';
+      navigator.clipboard.writeText(text).then(function() {
+        var origHtml = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '<span style="color: #fff;">✓ 복사됨!</span>';
+        showToast('📋 프롬프트/코드가 클립보드에 복사되었습니다!');
+        setTimeout(function() {
+          btn.classList.remove('copied');
+          btn.innerHTML = origHtml;
+        }, 1800);
+      }).catch(function(err) {
+        showToast('복사 실패: ' + err.message);
+      });
+    };
+
     function renderActiveChatMessages() {
       const geminiGreetingView = document.getElementById('geminiGreetingView');
       const geminiMessageThread = document.getElementById('geminiMessageThread');
@@ -5334,8 +5429,16 @@
         btn.addEventListener('click', function() {
           var idx = parseInt(btn.getAttribute('data-copy-msg'), 10);
           var textToCopy = session.messages[idx]?.text || '';
-          navigator.clipboard.writeText(textToCopy);
-          showToast('📋 응답 내용이 복사되었습니다.');
+          navigator.clipboard.writeText(textToCopy).then(function() {
+            var origText = btn.innerHTML;
+            btn.innerHTML = '✓ 복사됨!';
+            btn.style.color = '#10b981';
+            showToast('📋 전체 응답 내용이 복사되었습니다.');
+            setTimeout(function() {
+              btn.innerHTML = origText;
+              btn.style.color = '';
+            }, 1800);
+          });
         });
       });
 
@@ -5356,16 +5459,36 @@
       }
     }
 
-    function formatChatMarkdown(text) {
+        function formatChatMarkdown(text) {
       if (!text) return '';
       var out = escapeHtml(text);
+      
+      // Multi-line Code Block / Prompt Box with Top-Right Copy Button
       out = out.replace(/\`\`\`([a-zA-Z0-9_-]*)\n?([\s\S]*?)\`\`\`/g, function(_, lang, code) {
-        return '<pre><div style="display:flex; justify-content:space-between; font-size:10.5px; color:#8e918f; margin-bottom:6px;"><span>' + (lang || 'code') + '</span></div><code>' + code + '</code></pre>';
+        var displayLang = (lang || 'prompt').toUpperCase();
+        return '<div class="gemini-code-block-wrapper">' +
+          '<div class="code-block-header">' +
+            '<span class="code-lang-tag">' + displayLang + '</span>' +
+            '<button class="btn-copy-code" onclick="copyCodeSnippet(this)" title="프롬프트/코드 복사">' +
+              '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
+              '<span>복사</span>' +
+            '</button>' +
+          '</div>' +
+          '<pre><code>' + code.trim() + '</code></pre>' +
+        '</div>';
       });
-      out = out.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
+
+      // Inline code
+      out = out.replace(/\`([^\`]+)\`/g, '<code style="background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px;">$1</code>');
+      
+      // Bold
       out = out.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+      
+      // Lists
       out = out.replace(/^[\*\-]\s+(.+)$/gm, '<li style="margin-left: 20px; list-style-type: disc;">$1</li>');
       out = out.replace(/^(\d+)\.\s+(.+)$/gm, '<li style="margin-left: 20px; list-style-type: decimal;">$2</li>');
+      
+      // Line breaks
       out = out.replace(/\n/g, '<br>');
       return out;
     }

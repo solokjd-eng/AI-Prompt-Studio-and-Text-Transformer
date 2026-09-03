@@ -2751,10 +2751,10 @@
           </div>
           <div class="chat-topbar-actions">
             <select class="styled-select chat-model-top-select" id="chatTopModelSelect">
-              <option value="gemini-2.5-flash">⚡ 3.8 Flash (최신 표준)</option>
-              <option value="gemini-2.0-flash-lite">🚀 3.5 Flash-Lite (초고속)</option>
+              <option value="gemini-3.5-flash">⚡ 3.8 Flash (최신 표준)</option>
+              <option value="gemini-3.5-flash-lite">🚀 3.5 Flash-Lite (초고속)</option>
               <option value="gemini-3.1-pro-preview">🧠 3.1 Pro (고급 추론)</option>
-              <option value="gemini-2.0-flash-thinking-exp-01-21">💡 확장된 사고 모델 (Thinking)</option>
+              <option value="gemini-3.5-flash">💡 확장된 사고 모델 (Thinking)</option>
             </select>
             <button class="btn-action-sm" id="btnExportChat" title="대화 내용 복사/저장">💾 저장</button>
           </div>
@@ -2803,7 +2803,7 @@
           
           <!-- Authentic Floating Model Selector Popup Menu (Screenshot 1) -->
           <div class="gemini-model-popup-menu" id="geminiModelPopupMenu">
-            <div class="gemini-model-menu-item" data-model="gemini-2.0-flash-lite">
+            <div class="gemini-model-menu-item" data-model="gemini-3.5-flash-lite">
               <div class="model-menu-text-wrap">
                 <div class="model-menu-name">🚀 3.5 Flash-Lite</div>
                 <div class="model-menu-desc">가장 빠른 답변 제공 (초고속)</div>
@@ -2811,7 +2811,7 @@
               <span class="model-check-icon">✓</span>
             </div>
 
-            <div class="gemini-model-menu-item active" data-model="gemini-2.5-flash">
+            <div class="gemini-model-menu-item active" data-model="gemini-3.5-flash">
               <div class="model-menu-text-wrap">
                 <div class="model-menu-name">
                   <span>⚡ 3.8 Flash</span>
@@ -2893,11 +2893,10 @@
       <div class="form-group">
         <label class="form-label">우선 순위 AI 엔진 모델</label>
         <select class="form-input" id="modelSelect">
-          <option value="gemini-2.5-flash">⚡ 3.8 Flash (최신 표준·강력 권장 ⭐)</option>
-          <option value="gemini-2.0-flash-lite">🚀 3.5 Flash-Lite (가장 빠른 초고속 답변)</option>
+          <option value="gemini-3.5-flash">⚡ 3.8 Flash (최신 표준·강력 권장 ⭐)</option>
+          <option value="gemini-3.5-flash-lite">🚀 3.5 Flash-Lite (가장 빠른 초고속 답변)</option>
           <option value="gemini-3.1-pro-preview">🧠 3.1 Pro (고급 추론 및 분석)</option>
-          <option value="gemini-2.0-flash-thinking-exp-01-21">💡 확장된 사고 모델 (Thinking Mode)</option>
-          <option value="gemini-1.5-flash">⚡ 1.5 Flash (안정형 레거시)</option>
+          <option value="gemini-3.5-flash">💡 확장된 사고 모델 (Thinking Mode)</option>
         </select>
       </div>
       <div class="modal-footer">
@@ -4244,11 +4243,9 @@
 
       var modelsToTry = [
         state.selectedGeminiModel,
-        'gemini-2.0-flash',
-        'gemini-1.5-flash',
-        'gemini-2.0-flash-lite',
-        'gemini-2.5-flash',
-        'gemini-1.5-pro'
+        'gemini-3.5-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-flash-latest'
       ].filter(function(v, i, a) { return Boolean(v) && a.indexOf(v) === i; });
       var lastError = null;
 
@@ -5485,44 +5482,52 @@
         { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_NONE" }
       ];
 
-      // Smart model fallback map for official Google Gemini endpoint aliases
+      // Smart model fallback map tested directly against live Google Gemini endpoints
       var MODEL_FALLBACK_MAP = {
+        'gemini-3.5-flash-lite': [
+          'gemini-3.5-flash-lite',
+          'gemini-3.1-flash-lite',
+          'gemini-flash-lite-latest',
+          'gemini-3.5-flash'
+        ],
         'gemini-2.0-flash-lite': [
-          'gemini-2.0-flash-lite',
-          'gemini-2.0-flash-lite-preview-02-05',
-          'gemini-1.5-flash-8b',
-          'gemini-2.5-flash',
-          'gemini-2.0-flash',
-          'gemini-1.5-flash'
+          'gemini-3.5-flash-lite',
+          'gemini-3.1-flash-lite',
+          'gemini-flash-lite-latest',
+          'gemini-3.5-flash'
+        ],
+        'gemini-3.5-flash': [
+          'gemini-3.5-flash',
+          'gemini-flash-latest',
+          'gemini-3.5-flash-lite'
         ],
         'gemini-2.5-flash': [
-          'gemini-2.5-flash',
-          'gemini-2.0-flash',
-          'gemini-1.5-flash',
-          'gemini-2.0-flash-lite'
+          'gemini-3.5-flash',
+          'gemini-flash-latest',
+          'gemini-3.5-flash-lite'
+        ],
+        'gemini-3.8-flash': [
+          'gemini-3.5-flash',
+          'gemini-flash-latest',
+          'gemini-3.5-flash-lite'
         ],
         'gemini-3.1-pro-preview': [
           'gemini-3.1-pro-preview',
-          'gemini-3.1-pro',
-          'gemini-1.5-pro',
-          'gemini-2.5-flash',
-          'gemini-2.0-flash'
+          'gemini-pro-latest',
+          'gemini-3.5-flash'
         ],
         'gemini-2.0-flash-thinking-exp-01-21': [
-          'gemini-2.0-flash-thinking-exp-01-21',
-          'gemini-2.0-flash-thinking-exp',
-          'gemini-2.5-flash',
-          'gemini-1.5-flash'
+          'gemini-3.5-flash',
+          'gemini-flash-latest'
         ]
       };
 
-      var activeSelected = state.selectedGeminiModel || 'gemini-2.5-flash';
+      var activeSelected = state.selectedGeminiModel || 'gemini-3.5-flash';
       var modelsToTry = MODEL_FALLBACK_MAP[activeSelected] || [
         activeSelected,
-        'gemini-2.5-flash',
-        'gemini-2.0-flash',
-        'gemini-2.0-flash-lite',
-        'gemini-1.5-flash'
+        'gemini-3.5-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-flash-latest'
       ];
 
       var accumulatedText = '';

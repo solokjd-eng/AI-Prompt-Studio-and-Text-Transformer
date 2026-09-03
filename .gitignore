@@ -1,0 +1,9 @@
+# Dependencies & caches
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Large source zip extraction temp dirs
+original_src/
+text_transformer_src/

@@ -2111,6 +2111,101 @@
       .mobile-only { display: flex; }
       .gemini-sidebar { position: absolute; top: 0; bottom: 0; left: 0; box-shadow: 4px 0 20px rgba(0,0,0,0.5); }
     }
+
+    /* Gemini Model Popup Menu (Matching Screenshot 1) */
+    .gemini-model-popup-menu {
+      position: absolute;
+      bottom: 75px;
+      right: calc(50% - 410px + 20px);
+      width: 290px;
+      background: #1e1f20;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      padding: 8px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      animation: popupFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @media (max-width: 860px) {
+      .gemini-model-popup-menu {
+        right: 24px;
+      }
+    }
+
+    @keyframes popupFadeIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .gemini-model-menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .gemini-model-menu-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .gemini-model-menu-item.active {
+      background: rgba(66, 133, 244, 0.14);
+      border: 1px solid rgba(66, 133, 244, 0.3);
+    }
+
+    .model-menu-text-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .model-menu-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #f1f3f4;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .new-model-badge {
+      font-size: 10px;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.12);
+      color: #c4c7c5;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    .model-menu-desc {
+      font-size: 11px;
+      color: #8e918f;
+    }
+
+    .model-check-icon {
+      color: #a8c7fa;
+      font-size: 14px;
+      font-weight: 800;
+      opacity: 0;
+    }
+
+    .gemini-model-menu-item.active .model-check-icon {
+      opacity: 1;
+    }
+
+    .gemini-model-menu-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 4px 6px;
+    }
+
 </style>
 </head>
 <body>
@@ -2616,7 +2711,6 @@
               <option value="gemini-2.0-flash-lite">🚀 3.5 Flash-Lite (초고속)</option>
               <option value="gemini-2.5-pro">🧠 3.1 Pro (고급 추론)</option>
               <option value="gemini-2.0-flash-thinking-exp-01-21">💡 확장된 사고 모델 (Thinking)</option>
-              <option value="gemini-1.5-flash">⚡ 1.5 Flash (안정형)</option>
             </select>
             <button class="btn-action-sm" id="btnExportChat" title="대화 내용 복사/저장">💾 저장</button>
           </div>
@@ -2662,6 +2756,47 @@
             <span id="chatAttachedName" style="color: #cbd5e1; font-weight: 600;"></span>
             <button class="btn-remove-chat-attachment" id="btnRemoveChatAttachment">✕</button>
           </div>
+          
+          <!-- Authentic Floating Model Selector Popup Menu (Screenshot 1) -->
+          <div class="gemini-model-popup-menu" id="geminiModelPopupMenu">
+            <div class="gemini-model-menu-item" data-model="gemini-2.0-flash-lite">
+              <div class="model-menu-text-wrap">
+                <div class="model-menu-name">🚀 3.5 Flash-Lite</div>
+                <div class="model-menu-desc">가장 빠른 답변 제공 (초고속)</div>
+              </div>
+              <span class="model-check-icon">✓</span>
+            </div>
+
+            <div class="gemini-model-menu-item active" data-model="gemini-2.5-flash">
+              <div class="model-menu-text-wrap">
+                <div class="model-menu-name">
+                  <span>⚡ 3.8 Flash</span>
+                  <span class="new-model-badge">신규</span>
+                </div>
+                <div class="model-menu-desc">무엇이든 도움을 받으세요 (최신 표준)</div>
+              </div>
+              <span class="model-check-icon">✓</span>
+            </div>
+
+            <div class="gemini-model-menu-item" data-model="gemini-2.5-pro">
+              <div class="model-menu-text-wrap">
+                <div class="model-menu-name">🧠 3.1 Pro</div>
+                <div class="model-menu-desc">고급 추론 및 복잡한 분석</div>
+              </div>
+              <span class="model-check-icon">✓</span>
+            </div>
+
+            <div class="gemini-model-menu-divider"></div>
+
+            <div class="gemini-model-menu-item" data-model="gemini-2.0-flash-thinking-exp-01-21">
+              <div class="model-menu-text-wrap">
+                <div class="model-menu-name">💡 확장된 사고 모델</div>
+                <div class="model-menu-desc">복잡한 문제 해결 (Thinking / Reasoning)</div>
+              </div>
+              <span class="model-check-icon">✓</span>
+            </div>
+          </div>
+
           <div class="gemini-floating-input-box">
             <label class="gemini-input-btn" id="btnChatAttach" title="사진/이미지 첨부 (Gemini Vision)">
               <span style="font-size: 20px; font-weight: 300;">+</span>
@@ -4806,22 +4941,69 @@
         chatAttachmentPreview.style.display = 'none';
       });
 
-      chatTopModelSelect?.addEventListener('change', function(e) {
-        state.selectedGeminiModel = e.target.value;
-        chatModelIndicatorText.textContent = getModelFriendlyName(state.selectedGeminiModel);
-        chatPillModelText.textContent = state.selectedGeminiModel.includes('pro') ? 'Pro' : 'Flash';
-        localStorage.setItem('gemini_model', state.selectedGeminiModel);
+      const geminiModelPopupMenu = document.getElementById('geminiModelPopupMenu');
+
+      // Toggle Popup Menu when clicking the pill button in the chat box
+      chatModelPillBtn?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isShown = geminiModelPopupMenu.style.display === 'flex';
+        geminiModelPopupMenu.style.display = isShown ? 'none' : 'flex';
+        updateActiveModelMenuHighlight();
       });
 
-      chatModelPillBtn?.addEventListener('click', function() {
-        var nextModel = state.selectedGeminiModel.includes('pro') ? 'gemini-2.5-flash' : 'gemini-2.5-pro';
-        state.selectedGeminiModel = nextModel;
-        chatTopModelSelect.value = nextModel;
-        chatModelIndicatorText.textContent = getModelFriendlyName(nextModel);
-        chatPillModelText.textContent = nextModel.includes('pro') ? 'Pro' : 'Flash';
-        localStorage.setItem('gemini_model', state.selectedGeminiModel);
-        showToast('모델이 ' + getModelFriendlyName(nextModel) + '로 변경되었습니다.');
+      // Close popup when clicking outside
+      document.addEventListener('click', function(e) {
+        if (geminiModelPopupMenu && !geminiModelPopupMenu.contains(e.target) && e.target !== chatModelPillBtn && !chatModelPillBtn.contains(e.target)) {
+          geminiModelPopupMenu.style.display = 'none';
+        }
       });
+
+      // Handle selecting a model from the popup menu
+      document.querySelectorAll('.gemini-model-menu-item').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var targetModel = item.getAttribute('data-model');
+          selectGeminiModel(targetModel);
+          geminiModelPopupMenu.style.display = 'none';
+        });
+      });
+
+      // Handle topbar select change
+      chatTopModelSelect?.addEventListener('change', function(e) {
+        selectGeminiModel(e.target.value);
+      });
+
+      function selectGeminiModel(modelId) {
+        state.selectedGeminiModel = modelId;
+        if (chatTopModelSelect) chatTopModelSelect.value = modelId;
+        if (chatModelIndicatorText) chatModelIndicatorText.textContent = getModelFriendlyName(modelId);
+        
+        // Update pill text
+        if (chatPillModelText) {
+          if (modelId.includes('lite') || modelId.includes('8b')) chatPillModelText.textContent = '3.5 Flash-Lite';
+          else if (modelId.includes('thinking')) chatPillModelText.textContent = '사고 모델';
+          else if (modelId.includes('pro')) chatPillModelText.textContent = '3.1 Pro';
+          else chatPillModelText.textContent = '3.8 Flash';
+        }
+
+        localStorage.setItem('gemini_model', modelId);
+        updateActiveModelMenuHighlight();
+        showToast('모델 선택: ' + getModelFriendlyName(modelId));
+      }
+
+      function updateActiveModelMenuHighlight() {
+        document.querySelectorAll('.gemini-model-menu-item').forEach(function(el) {
+          var m = el.getAttribute('data-model');
+          if (m === state.selectedGeminiModel) {
+            el.classList.add('active');
+          } else {
+            el.classList.remove('active');
+          }
+        });
+      }
+
+      // Initial highlight sync
+      selectGeminiModel(state.selectedGeminiModel || 'gemini-2.5-flash');
 
       btnExportChat?.addEventListener('click', function() {
         var cur = geminiChatSessions.find(function(s) { return s.id === activeChatSessionId; });
@@ -4838,12 +5020,12 @@
       });
     }
 
-    function getModelFriendlyName(model) {
-      if (model.includes('flash-lite') || model.includes('8b')) return '3.5 Flash-Lite (초고속)';
-      if (model.includes('thinking')) return '확장된 사고 모델 (Thinking)';
-      if (model.includes('2.5-flash') || model.includes('3.8') || model.includes('2.0-flash')) return '3.8 Flash (신규)';
-      if (model.includes('pro')) return '3.1 Pro (고급 추론)';
-      if (model.includes('1.5-flash')) return '1.5 Flash (안정형)';
+        function getModelFriendlyName(model) {
+      if (!model) return '⚡ 3.8 Flash (최신 표준)';
+      if (model.includes('flash-lite') || model.includes('8b')) return '🚀 3.5 Flash-Lite (초고속)';
+      if (model.includes('thinking')) return '💡 확장된 사고 모델 (Thinking)';
+      if (model.includes('2.5-flash') || model.includes('3.8') || model.includes('2.0-flash')) return '⚡ 3.8 Flash (최신 표준)';
+      if (model.includes('pro')) return '🧠 3.1 Pro (고급 추론)';
       return model;
     }
 

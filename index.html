@@ -5824,8 +5824,12 @@
       if (!session) return;
       var msg = session.messages[idx];
       var card = msg?.imageCard;
-      if (!card || !card.prompt) return;
-      navigator.clipboard.writeText(card.prompt).then(function() {
+      if (!card) return;
+      var textToCopy = card.prompt || '';
+      if (card.enhancedPrompt && card.enhancedPrompt !== card.prompt) {
+        textToCopy += '\n\n[AI 영문 최적화 프롬프트]\n' + card.enhancedPrompt;
+      }
+      navigator.clipboard.writeText(textToCopy).then(function() {
         showToast('📋 이미지 생성 프롬프트가 복사되었습니다!');
       });
     };
@@ -5855,6 +5859,7 @@
       if (!card || !card.base64) return '';
       var b64 = card.base64;
       var prompt = card.prompt || '';
+      var enhancedPrompt = card.enhancedPrompt || '';
       var engine = card.engine || 'Imagen 3';
       var ratio = card.aspectRatio || '1:1';
 
@@ -5866,6 +5871,7 @@
         '</div>' +
         '<div class="gemini-image-info-bar">' +
           (prompt ? '<div class="gemini-image-prompt-text"><strong>프롬프트:</strong> ' + escapeHtml(prompt) + '</div>' : '') +
+          (enhancedPrompt && enhancedPrompt !== prompt ? '<div class="gemini-image-prompt-text" style="font-size: 11px; color: #9aa0a6; margin-top: 3px; font-style: italic;">✨ ' + escapeHtml(enhancedPrompt) + '</div>' : '') +
           '<div class="gemini-image-actions-bar">' +
             '<button class="btn-img-action primary" onclick="downloadImageCard(' + idx + ')">' +
               '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
@@ -6104,37 +6110,119 @@
       };
       var dims = ratioDimensions[targetRatio] || { w: 1024, h: 1024 };
 
-      // Helper: Enhance & translate user prompt to rich English visual prompt via Gemini text API (works free tier)
+      // Multi-tier Intelligent Prompt Translator & Visual Enhancer (Korean -> Accurate English Visual Prompt)
       async function getEnhancedEnglishPrompt(promptText) {
-        if (!state.apiKey) return promptText;
-        try {
-          var enhanceUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(state.apiKey);
-          var res = await fetch(enhanceUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{
-                  text: "You are an expert visual AI prompt engineer. Convert and enrich this user prompt into a photorealistic, cinematic English prompt for FLUX.1 / Imagen 3 image generation. Focus on subject, composition, atmosphere, lighting, and detail. Return ONLY the English prompt string, without any quotes or explanations:\n\nUser Prompt: " + promptText
-                }]
-              }],
-              generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 200
+        if (!promptText) return '';
+        var rawText = promptText.trim();
+
+        // 1. Try Gemini Text API with multi-model fallback
+        if (state.apiKey) {
+          var candidateModels = [
+            'gemini-3.5-flash',
+            'gemini-3.5-flash-lite',
+            'gemini-2.5-flash',
+            'gemini-2.0-flash',
+            'gemini-1.5-flash',
+            'gemini-flash-latest'
+          ];
+
+          for (var m = 0; m < candidateModels.length; m++) {
+            try {
+              var enhanceUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + candidateModels[m] + ":generateContent?key=" + encodeURIComponent(state.apiKey);
+              var res = await fetch(enhanceUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{
+                    parts: [{
+                      text: "You are a professional image prompt translator and visual artist. Translate the user's image prompt into an extremely vivid, detailed English visual prompt for FLUX.1 / Imagen 3 image generation.\n" +
+                            "CRITICAL: Accurately translate ALL subjects, animals, accessories, colors, and art styles (e.g. '리트리버' must be 'golden retriever dog', '썬그라스/선글라스' must be 'sunglasses').\n" +
+                            "Return ONLY the English visual prompt string, without any quotes or explanations.\n\nUser Prompt: " + rawText
+                    }]
+                  }],
+                  generationConfig: {
+                    temperature: 0.3,
+                    maxOutputTokens: 200
+                  }
+                })
+              });
+
+              if (res.ok) {
+                var data = await res.json();
+                var enhanced = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                if (enhanced && enhanced.length > 5 && !/[가-힣]/.test(enhanced)) {
+                  return enhanced.replace(/^[\"\']|[\"\']$/g, '');
+                }
               }
-            })
-          });
-          if (res.ok) {
-            var data = await res.json();
-            var enhanced = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-            if (enhanced && enhanced.length > 5) {
-              return enhanced.replace(/^[\"\']|[\"\']$/g, '');
+            } catch (err) {
+              console.warn('Gemini translation tier error on ' + candidateModels[m] + ':', err);
             }
           }
-        } catch (e) {
-          console.warn('Prompt enhancement fallback:', e);
         }
-        return promptText;
+
+        // 2. Built-in Client-side Dictionary & Semantic Translator Fallback
+        return fallbackTranslateToEnglish(rawText);
+      }
+
+      function fallbackTranslateToEnglish(text) {
+        var asciiLetters = (text.match(/[a-zA-Z]/g) || []).length;
+        if (asciiLetters > text.length * 0.5) {
+          return text + ", ultra-detailed, photorealistic, 8k resolution";
+        }
+
+        var dict = {
+          '골든리트리버': 'golden retriever dog',
+          '리트리버': 'golden retriever dog',
+          '시바견': 'shiba inu dog',
+          '불독': 'bulldog',
+          '푸들': 'poodle dog',
+          '허스키': 'siberian husky dog',
+          '강아지': 'cute puppy dog',
+          '개': 'dog',
+          '고양이': 'cute cat',
+          '새끼고양이': 'little kitten',
+          '사자': 'majestic lion',
+          '호랑이': 'fierce tiger',
+          '곰': 'bear',
+          '팬더': 'giant panda',
+          '토끼': 'cute rabbit bunny',
+          '썬그라스': 'wearing stylish dark sunglasses',
+          '선글라스': 'wearing stylish dark sunglasses',
+          '안경': 'wearing fashionable glasses',
+          '모자': 'wearing a cool hat',
+          '우주복': 'wearing an astronaut spacesuit',
+          '정장': 'wearing a tailored luxury suit',
+          '사이버펑크': 'cyberpunk neon city futuristic style',
+          '우주': 'deep space nebula stars cosmic background',
+          '고래': 'giant majestic whale',
+          '바다': 'crystal clear turquoise ocean',
+          '해변': 'tropical sunny beach with palm trees',
+          '일러스트': 'digital art illustration, vibrant colors',
+          '사진': 'photorealistic 8k photograph, natural sunlight',
+          '실사': 'cinematic ultra-realistic photography',
+          '그림': 'masterpiece artwork, high detail',
+          '배경화면': '8k wallpaper, majestic composition',
+          '자동차': 'modern luxury sports car',
+          '스포츠카': 'sleek exotic supercar',
+          '도시': 'modern metropolis cityscape',
+          '야경': 'illuminated night cityscape bokeh',
+          '노을': 'golden hour sunset warm lighting',
+          '석양': 'dramatic cinematic sunset sky',
+          '숲': 'lush green enchanted forest'
+        };
+
+        var translated = text;
+        for (var k in dict) {
+          var reg = new RegExp(k, 'gi');
+          translated = translated.replace(reg, dict[k] + ' ');
+        }
+
+        // Clean leftover Korean characters
+        translated = translated.replace(/[가-힣]+/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!translated || translated.length < 3) {
+          return "beautiful masterpiece, photorealistic, 8k resolution, cinematic lighting";
+        }
+        return translated + ", photorealistic photograph, 8k resolution, highly detailed, cinematic lighting";
       }
 
       // Tier 1: Google Imagen 3.0 API (if user has enabled billing / paid tier)

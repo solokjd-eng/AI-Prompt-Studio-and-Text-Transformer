@@ -5245,9 +5245,79 @@
         }
       }
 
-      var parts = raw.split(/--- KOREAN TRANSLATION ---/i);
-      var eng = parts[0]?.trim() || raw;
-      var kor = parts[1]?.trim() || '';
+    function splitEnglishAndKorean(raw) {
+      if (!raw) return { english: '', korean: '' };
+      var text = String(raw).trim();
+
+      // 1. Explicit Delimiter Patterns (--- KOREAN TRANSLATION ---, ### KOREAN TRANSLATION, etc.)
+      var delimiterRegexes = [
+        /(?:\r?\n|^)\s*(?:---|___|\*\*\*)*\s*(?:#{1,4}\s*)?(?:\[|\()? *(?:KOREAN\s*TRANSLATION|한국어\s*번역|한국어\s*해설|한국어\s*번역\s*및\s*연출\s*해설|KOREAN\s*TRANSLATION\s*&\s*ANALYSIS|KOREAN\s*INTERPRETATION) *(?:\]|\))?\s*(?:---|___|\*\*\*)*\s*(?:\r?\n|$)/i,
+        /(?:\r?\n)\s*(?:---|___|\*\*\*)\s*(?:\r?\n)\s*(?=[가-힣]|#{1,4}\s*[가-힣]|\*\*\[?[가-힣])/i
+      ];
+
+      for (var d = 0; d < delimiterRegexes.length; d++) {
+        var match = text.match(delimiterRegexes[d]);
+        if (match && match.index !== undefined) {
+          var engPart = text.slice(0, match.index).trim();
+          var korPart = text.slice(match.index + match[0].length).trim();
+          if (engPart && korPart) {
+            return {
+              english: engPart.replace(/(?:---|___|\*\*\*)\s*$/, '').trim(),
+              korean: korPart.trim()
+            };
+          }
+        }
+      }
+
+      // 2. Fallback: Check if prominent Korean section headers start in prompt
+      var korSectionHeader = /(?:\r?\n)\s*(?:\*\*|#{1,4}\s*)?\[?(?:주제\s*정의|피사체\s*정의|요약|잔류율\s*분석|상세\s*묘사|사운드스케이프|음악|장면\s*설정|샷\s*설정|카메라\s*무빙|인물\s*정의)\]?(?:\*\*)?\s*[:\n]/i;
+      var secMatch = text.match(korSectionHeader);
+      if (secMatch && secMatch.index && secMatch.index > 30) {
+        var engSec = text.slice(0, secMatch.index).trim();
+        var korSec = text.slice(secMatch.index).trim();
+        return {
+          english: engSec.replace(/(?:---|___|\*\*\*)\s*$/, '').trim(),
+          korean: korSec.trim()
+        };
+      }
+
+      return { english: text, korean: '' };
+    }
+
+    function renderPromptOutput(raw) {
+      emptyState.style.display = 'none';
+      dynamicResults.style.display = 'flex';
+      dynamicResults.innerHTML = '';
+
+      if (state.activeModel === 'krea' && state.kreaSubMode === 'storyboard') {
+        try {
+          var data = JSON.parse(raw.replace(/^```json\n?/, '').replace(/\n?```$/, ''));
+          var cuts = data.cuts || data.storyboard || (Array.isArray(data) ? data : []);
+          dynamicResults.innerHTML = [
+            '<div class="storyboard-cards-grid">',
+              cuts.map(function(c, i) {
+                return '<div class="story-cut-card">' +
+                  '<div class="story-cut-header">' +
+                    '<span class="cut-badge">컷 ' + (c.cutNumber || i + 1) + '</span>' +
+                    '<span class="angle-badge">' + (c.cameraAngle || 'Wide Shot') + '</span>' +
+                  '</div>' +
+                  '<div class="story-cut-prompt">' + (c.englishPrompt || c.prompt) + '</div>' +
+                  '<div class="story-cut-trans">' + (c.koreanTranslation || c.korean || '') + '</div>' +
+                '</div>';
+              }).join(''),
+            '</div>'
+          ].join('');
+          state.lastOutput = { english: JSON.stringify(cuts, null, 2), korean: '스토리보드 시퀀스 컷' };
+          saveHistoryItem({ model: 'krea', style: '스토리보드', prompt: JSON.stringify(cuts, null, 2), trans: '스토리보드' });
+          return;
+        } catch (e) {
+          console.warn('JSON parsing failed, falling back to text:', e);
+        }
+      }
+
+      var split = splitEnglishAndKorean(raw);
+      var eng = split.english;
+      var kor = split.korean;
 
       state.lastOutput = { english: eng, korean: kor };
 
@@ -5290,31 +5360,46 @@
     // Modal view & copy & txt
     btnModalView.addEventListener('click', function() {
       if (!state.lastOutput) return;
-      modalPromptEngText.textContent = state.lastOutput.english;
-      modalPromptKorText.textContent = state.lastOutput.korean || '번역 없음';
+      var eng = state.lastOutput.english || '';
+      var kor = state.lastOutput.korean || '';
+      if (!kor || kor === '번역 없음') {
+        var split = splitEnglishAndKorean(eng);
+        if (split.korean) {
+          eng = split.english;
+          kor = split.korean;
+        }
+      }
+      modalPromptEngText.textContent = eng;
+      modalPromptKorText.textContent = kor || '번역 없음';
       promptViewModal.style.display = 'flex';
     });
 
     btnCloseViewModal.addEventListener('click', function() { promptViewModal.style.display = 'none'; });
     btnCloseViewModalBtn.addEventListener('click', function() { promptViewModal.style.display = 'none'; });
     btnCopyModalEng.addEventListener('click', function() {
-      navigator.clipboard.writeText(state.lastOutput?.english || '');
+      navigator.clipboard.writeText(modalPromptEngText.textContent || '');
       showToast('📋 영문 프롬프트 복사 완료');
     });
     btnCopyModalKor.addEventListener('click', function() {
-      navigator.clipboard.writeText(state.lastOutput?.korean || '');
+      navigator.clipboard.writeText(modalPromptKorText.textContent || '');
       showToast('📋 번역 복사 완료');
     });
 
     btnCopyMain.addEventListener('click', function() {
       if (!state.lastOutput) return;
-      navigator.clipboard.writeText(state.lastOutput.english + "\n\n" + state.lastOutput.korean);
+      var eng = state.lastOutput.english || '';
+      var kor = state.lastOutput.korean || '';
+      var combined = kor ? (eng + "\n\n" + kor) : eng;
+      navigator.clipboard.writeText(combined);
       showToast('📋 전체 프롬프트 복사 완료');
     });
 
     btnDownloadTxt.addEventListener('click', function() {
       if (!state.lastOutput) return;
-      downloadText("[MASTER PROMPT]\n" + state.lastOutput.english + "\n\n[KOREAN TRANSLATION]\n" + state.lastOutput.korean, "prompt_" + Date.now() + ".txt", 'text/plain;charset=utf-8');
+      var eng = state.lastOutput.english || '';
+      var kor = state.lastOutput.korean || '';
+      var content = kor ? ("[MASTER PROMPT]\n" + eng + "\n\n[KOREAN TRANSLATION]\n" + kor) : eng;
+      downloadText(content, "prompt_" + Date.now() + ".txt", 'text/plain;charset=utf-8');
     });
 
     /* -------------------------------------------------------------
@@ -5339,12 +5424,17 @@
       }
 
       historyGalleryRow.innerHTML = state.history.slice(0, 30).map(function(item) {
+        var cleanSnippet = item.prompt || '';
+        if (!item.trans || item.trans === '번역 없음') {
+          var split = splitEnglishAndKorean(cleanSnippet);
+          if (split.korean) cleanSnippet = split.english;
+        }
         return '<div class="history-card" data-id="' + item.id + '">' +
           '<div class="history-card-header">' +
             '<span class="history-model-tag ' + item.model + '">[' + item.model.toUpperCase() + '] ' + item.style + '</span>' +
             '<span class="history-time">' + new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span>' +
           '</div>' +
-          '<div class="history-snippet">' + escapeHtml(item.prompt) + '</div>' +
+          '<div class="history-snippet">' + escapeHtml(cleanSnippet) + '</div>' +
           '<button class="btn-view-history-prompt">💻 프롬프트 보기</button>' +
         '</div>';
       }).join('');
@@ -5354,8 +5444,17 @@
           var id = card.getAttribute('data-id');
           var found = state.history.find(function(h) { return h.id === id; });
           if (found) {
-            modalPromptEngText.textContent = found.prompt;
-            modalPromptKorText.textContent = found.trans || '번역 없음';
+            var eng = found.prompt || '';
+            var kor = found.trans || '';
+            if (!kor || kor === '번역 없음' || kor === '스토리보드') {
+              var split = splitEnglishAndKorean(eng);
+              if (split.korean) {
+                eng = split.english;
+                kor = split.korean;
+              }
+            }
+            modalPromptEngText.textContent = eng;
+            modalPromptKorText.textContent = kor || '번역 없음';
             promptViewModal.style.display = 'flex';
           }
         });

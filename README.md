@@ -29,6 +29,35 @@
 
 ---
 
+## 🔑 시작하기 전: 무료 API 키 & 토큰 설정 가이드 (1분 완료)
+
+본 스튜디오의 모든 AI 기능(프롬프트 생성, 텍스트 가공, 무검열 제미나이 대화 및 이미지 생성)을 정상적으로 사용하려면 **무료 API 키**를 등록해야 합니다.
+
+![API 키 및 이미지 엔진 설정](./assets/screenshots/06_api_settings.png)
+
+### 1. 설정 창 열기
+- 화면 우측 상단의 **`(?)` 버튼** 또는 **`Gemini 연결 상태` 뱃지**를 클릭하면 **[AI API 키 및 이미지 엔진 설정]** 창이 나타납니다.
+
+### 2. Google Gemini API 키 등록 (대화 & 프롬프트 생성용 / 100% 무료)
+- **무료 발급 방법**:
+  1. 설정 창에서 **`무료 키 발급 ↗`** 링크를 클릭합니다. (구글 계정만 있으면 누구나 1분 만에 무료 발급 가능)
+  2. Google AI Studio에서 발급받은 API 키를 복사하여 **`Google Gemini API Key`** 입력칸에 붙여넣습니다.
+  3. **`⚡ Gemini 연결 확인`** 버튼을 눌러 정상 연결 메시지가 뜨는지 확인합니다.
+
+### 3. Hugging Face 토큰 등록 (무검열 제미나이 이미지 생성용)
+- **무료 발급 방법**:
+  1. 무검열 제미나이 대화창에서 텍스트 프롬프트 기반 **AI 이미지 생성(FLUX.1-schnell 등)** 기능을 고화질(1024p)로 사용하려면 허깅페이스 토큰이 필요합니다.
+  2. *(※ 전문 유료 생성기 대비 해상도와 세부 묘사의 차이는 있으나, 대화 중 즉석에서 무료로 콘셉트 비주얼을 시각화하고 뽑아내기에 매우 유용합니다.)*
+  3. 설정 창에서 **`무료 토큰 발급 ↗`** 링크를 클릭하여 Hugging Face 계정의 Read 권한 토큰을 무료 생성 후 붙여넣습니다.
+  4. **`🤗 HF 토큰 확인`** 버튼을 눌러 연결 여부를 테스트하고, 하단 **`[설정 저장하기]`**를 클릭합니다.
+
+> ### 🛡️ 100% 안심하고 사용하세요! (철저한 로컬 보안 & 개인정보 보호)
+> - 본 애플리케이션은 **별도의 중앙 백엔드 서버가 전혀 없는 순수 클라이언트 사이드 웹 앱(Client-side Web App)**입니다.
+> - 사용자가 입력한 **Google Gemini API 키와 Hugging Face 토큰은 외부 서버나 제작자에게 일절 전송되지 않으며**, 오직 **사용자 본인 PC의 브라우저 로컬 저장소(`localStorage`)에만 안전하게 보관**됩니다.
+> - 모든 인공지능 통신은 사용자 브라우저에서 Google 및 Hugging Face 공식 API 서버로 직접 1:1 암호화(HTTPS) 통신되므로 안심하고 사용하셔도 됩니다.
+
+---
+
 ## 🌟 탭별 상세 기능 안내
 
 ### 🎬 1. MiniMax H3 Prompt Architect
@@ -118,20 +147,14 @@
 - **100% 무검열 자유 대화 (Zero Censorship)**:
   - 5대 유해성 세이프티 카테고리 전체 `BLOCK_NONE` 적용.
   - R등급 성인 드라마, 시네마틱 시나리오, 사실적 인체 묘사, ComfyUI 커스텀 노드 개발 등 제한 없는 대화 지원.
-- **🎨 Imagen 3.0 & Gemini Image 직접 생성 연동**:
+- **🎨 AI 이미지 실시간 생성 연동**:
   - 대화창에서 "그려줘", "이미지 생성해줘" 입력 또는 전용 `🎨` 버튼 클릭 시 실시간 이미지 생성.
   - 4대 화면비(`1:1`, `16:9`, `9:16`, `4:3`) 지원, 클릭 시 고해상도 확대 모달 및 원클릭 다운로드.
+  - *(허깅페이스 토큰 등록 시 1024p 원본 고해상도 렌더링 활성화)*
 - **멀티모달 이미지 비전 (Vision OCR & 분석)**:
   - 클립보드 붙여넣기(`Ctrl+V`), 파일 드래그앤드롭, `+` 첨부 버튼으로 이미지를 업로드하여 시각적 질의응답 지원.
 - **다양한 Gemini 모델 실시간 전환**:
   - `Gemini 3.5 Flash`, `Gemini 3.6 Flash`, `Gemini 2.5 Pro`, `Gemini 3.8 Flash` 등 원하는 모델을 언제든 선택 가능.
-
----
-
-## 🔒 프라이버시 & 보안 (Local First)
-
-- **API 키 완전 로컬 보관**: 입력한 Google Gemini API 키 및 Hugging Face 토큰은 외부 서버로 전송되지 않으며, 사용자 본인 브라우저의 `localStorage`에만 안전하게 보관됩니다.
-- **순수 클라이언트 사이드 실행**: 일체의 백엔드 서버 없이 브라우저 내에서 직접 구동되므로 데이터 유출 위험이 전혀 없습니다.
 
 ---
 
@@ -153,7 +176,7 @@
 ## 🛠️ 기술 스택 (Tech Stack)
 
 - **Frontend**: Single-file HTML5, Vanilla JavaScript (ES6+), Modern Vanilla CSS (Glassmorphism & Dark Design System)
-- **AI Integration**: Google Generative Language API (Gemini Flash & Pro / Imagen 3.0), Local LLM (OpenAI-compatible endpoints)
+- **AI Integration**: Google Generative Language API (Gemini Flash & Pro), Hugging Face Inference API, Local LLM (OpenAI-compatible endpoints)
 - **Design Tokens**: Outfit, Noto Sans KR, Fira Code (Monospace)
 - **Storage**: Browser LocalStorage (Zero-server architecture)
 

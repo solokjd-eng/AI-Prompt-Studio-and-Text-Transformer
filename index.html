@@ -2981,13 +2981,143 @@
       margin-left: 6px;
       border: 1px solid rgba(56, 189, 248, 0.35);
       animation: pulseLiveBadge 1.2s infinite alternate ease-in-out;
+    /* AI Model Comparison Table & Guide in Settings Modal */
+    #apiModal .modal-box {
+      max-width: 820px;
     }
-    @keyframes pulseLiveBadge {
-      from { opacity: 0.85; transform: scale(0.98); }
-      to { opacity: 1; transform: scale(1.02); text-shadow: 0 0 8px rgba(56, 189, 248, 0.8); }
+    .model-guide-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 600;
     }
-
-</style>
+    .model-guide-toggle-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #7dd3fc;
+    }
+    .model-comparison-container {
+      margin-top: 10px;
+      background: rgba(13, 19, 33, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s ease;
+    }
+    .model-comparison-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 8px;
+    }
+    .model-guide-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    .model-guide-table th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-dim);
+      font-weight: 700;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      white-space: nowrap;
+      font-size: 11.5px;
+    }
+    .model-guide-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+      vertical-align: middle;
+    }
+    .model-guide-table tr.model-row {
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .model-guide-table tr.model-row:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .model-guide-table tr.model-row.active {
+      background: rgba(16, 185, 129, 0.12);
+      outline: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .model-guide-table tr.model-row.active td:first-child {
+      color: #34d399;
+      font-weight: 700;
+    }
+    .speed-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-family: 'Fira Code', monospace;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+    .speed-badge-pill.fast {
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.3);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .speed-badge-pill.turbo {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(6, 182, 212, 0.1);
+    }
+    .speed-badge-pill.slow {
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.3);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .safety-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .safety-tag-pill.open {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .safety-tag-pill.caution {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+    .safety-tag-pill.strict {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+    .model-guide-footer-tip {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 6px;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+  </style>
 </head>
 <body>
 
@@ -3760,7 +3890,13 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">우선 순위 AI 엔진 모델</label>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label class="form-label" style="margin: 0;">우선 순위 AI 엔진 모델</label>
+          <button type="button" class="model-guide-toggle-btn" id="btnToggleModelGuide">
+            <span>📊 모델별 속도·품질·검열 비교표</span>
+            <span id="modelGuideArrow">▼</span>
+          </button>
+        </div>
         <select class="form-input" id="modelSelect">
           <option value="gemini-3.8-flash">⚡ 3.8 Flash (최신 표준·강력 권장 ⭐)</option>
           <option value="gemini-3.5-flash">⚡ 3.5 Flash (안정형 고성능)</option>
@@ -3768,6 +3904,63 @@
           <option value="gemini-3.1-pro-preview">🧠 3.1 Pro (고급 추론 및 분석)</option>
           <option value="gemini-2.0-flash-thinking-exp-01-21">💡 확장된 사고 모델 (Thinking Mode)</option>
         </select>
+
+        <!-- Model Comparison Table & Bypass Guide -->
+        <div class="model-comparison-container" id="modelComparisonContainer">
+          <div class="model-comparison-table-wrap">
+            <table class="model-guide-table">
+              <thead>
+                <tr>
+                  <th>모델명</th>
+                  <th>⚡ 응답 속도</th>
+                  <th>🎨 프롬프트 품질 및 묘사력</th>
+                  <th>🛡️ 검열 민감도 (우회력)</th>
+                  <th>주 추천 용도</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="model-row" data-model="gemini-3.8-flash">
+                  <td><strong>⚡ 3.8 Flash</strong> <span style="font-size:10px; color:#fbbf24; font-weight:700;">(추천 ⭐)</span></td>
+                  <td><span class="speed-badge-pill fast">매우 빠름 (0.8s~1.5s)</span></td>
+                  <td><span style="color:#fbbf24;">⭐⭐⭐⭐⭐</span> <span style="font-size:11px; color:#cbd5e1;">(최신 렌더링 문법 최적화)</span></td>
+                  <td><span class="safety-tag-pill open">🛡️ 매우 관대함 (거부율 최저)</span></td>
+                  <td style="font-size:11.5px; color:#cbd5e1;">기본 메인 프롬프트 생성 & 일상 대화</td>
+                </tr>
+                <tr class="model-row" data-model="gemini-3.5-flash-lite">
+                  <td><strong>🚀 3.5 Flash-Lite</strong></td>
+                  <td><span class="speed-badge-pill turbo">초고속 (0.3s~0.7s)</span></td>
+                  <td><span style="color:#fbbf24;">⭐⭐⭐</span> <span style="font-size:11px; color:#cbd5e1;">(핵심 위주 간결한 영작)</span></td>
+                  <td><span class="safety-tag-pill open">🛡️ 매우 관대함 (지시 그대로 수행)</span></td>
+                  <td style="font-size:11.5px; color:#cbd5e1;">대용량 텍스트 트랜스포머 일괄 가공</td>
+                </tr>
+                <tr class="model-row" data-model="gemini-3.5-flash">
+                  <td><strong>⚡ 3.5 Flash</strong></td>
+                  <td><span class="speed-badge-pill fast">빠름 (1.0s~1.8s)</span></td>
+                  <td><span style="color:#fbbf24;">⭐⭐⭐⭐</span> <span style="font-size:11px; color:#cbd5e1;">(안정적이고 균형 잡힌 출력)</span></td>
+                  <td><span class="safety-tag-pill open">🛡️ 관대함</span></td>
+                  <td style="font-size:11.5px; color:#cbd5e1;">안정적인 표준 작업</td>
+                </tr>
+                <tr class="model-row" data-model="gemini-3.1-pro-preview">
+                  <td><strong>🧠 3.1 Pro</strong></td>
+                  <td><span class="speed-badge-pill">보통 (2.5s~4.5s)</span></td>
+                  <td><span style="color:#fbbf24;">⭐⭐⭐⭐⭐</span> <span style="font-size:11px; color:#cbd5e1;">(시네마틱 미장센/조명 극대화)</span></td>
+                  <td><span class="safety-tag-pill caution">⚠️ 다소 보수적 (주의 필요)</span></td>
+                  <td style="font-size:11.5px; color:#cbd5e1;">고난도 시나리오 및 8컷 연속 스토리보드</td>
+                </tr>
+                <tr class="model-row" data-model="gemini-2.0-flash-thinking-exp-01-21">
+                  <td><strong>💡 Thinking Mode</strong></td>
+                  <td><span class="speed-badge-pill slow">느림 (4.0s~8.0s+)</span></td>
+                  <td><span style="color:#fbbf24;">⭐⭐⭐⭐⭐</span> <span style="font-size:11px; color:#cbd5e1;">(다단계 추론 및 논리적 완결성)</span></td>
+                  <td><span class="safety-tag-pill strict">🔒 가장 엄격함 (추론 단계 검열)</span></td>
+                  <td style="font-size:11.5px; color:#cbd5e1;">복잡한 설정 기획 & 심층 프롬프트 설계</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="model-guide-footer-tip">
+            💡 <strong>자동 우회 안내:</strong> 어떤 모델을 선택하든 AI 검열 차단 발생 시 백그라운드에서 자동으로 <strong>2단계 영화 시나리오 프레임 우회 및 하위 모델 순차 폴백</strong>이 작동합니다. (표의 행을 클릭하면 해당 모델이 즉시 선택됩니다.)
+          </div>
+        </div>
       </div>
 
       <!-- Section 2: Hugging Face Token -->
@@ -6272,7 +6465,10 @@
     // API Key Modal
     btnOpenApiModal.addEventListener('click', function() {
       if (state.apiKey) apiKeyInput.value = state.apiKey;
-      if (state.selectedGeminiModel && modelSelect) modelSelect.value = state.selectedGeminiModel;
+      if (state.selectedGeminiModel && modelSelect) {
+        modelSelect.value = state.selectedGeminiModel;
+        updateModelGuideActiveRow(state.selectedGeminiModel);
+      }
       var hfInput = document.getElementById('hfTokenInput');
       if (hfInput) hfInput.value = state.hfToken || '';
       apiModal.style.display = 'flex';
@@ -6294,8 +6490,45 @@
       if (typeof updateEngineOptionLockState === 'function') updateEngineOptionLockState();
       if (typeof chatTopModelSelect !== 'undefined' && chatTopModelSelect) chatTopModelSelect.value = state.selectedGeminiModel;
       if (typeof chatModelIndicatorText !== 'undefined' && chatModelIndicatorText) chatModelIndicatorText.textContent = getModelFriendlyName(state.selectedGeminiModel);
+      updateModelGuideActiveRow(state.selectedGeminiModel);
       apiModal.style.display = 'none';
       showToast('AI 설정이 저장되었습니다. (' + getModelBadgeLabel(state.selectedGeminiModel) + ')');
+    });
+
+    // AI Model Guide Table sync & toggle
+    function updateModelGuideActiveRow(modelId) {
+      if (!modelId) return;
+      document.querySelectorAll('.model-guide-table tr.model-row').forEach(function(row) {
+        if (row.getAttribute('data-model') === modelId) {
+          row.classList.add('active');
+        } else {
+          row.classList.remove('active');
+        }
+      });
+    }
+
+    document.querySelectorAll('.model-guide-table tr.model-row').forEach(function(row) {
+      row.addEventListener('click', function() {
+        var m = this.getAttribute('data-model');
+        if (m && modelSelect) {
+          modelSelect.value = m;
+          updateModelGuideActiveRow(m);
+          if (typeof selectGeminiModel === 'function') selectGeminiModel(m);
+        }
+      });
+    });
+
+    modelSelect?.addEventListener('change', function() {
+      updateModelGuideActiveRow(this.value);
+    });
+
+    const btnToggleModelGuide = document.getElementById('btnToggleModelGuide');
+    const modelComparisonContainer = document.getElementById('modelComparisonContainer');
+    const modelGuideArrow = document.getElementById('modelGuideArrow');
+    btnToggleModelGuide?.addEventListener('click', function() {
+      var isHidden = modelComparisonContainer.style.display === 'none';
+      modelComparisonContainer.style.display = isHidden ? 'block' : 'none';
+      if (modelGuideArrow) modelGuideArrow.textContent = isHidden ? '▼' : '▲';
     });
 
     // 1. Separate Google Gemini API Key Test
@@ -7552,6 +7785,7 @@
         localStorage.setItem('gemini_model', modelId);
         updateApiStatus();
         updateActiveModelMenuHighlight();
+        if (typeof updateModelGuideActiveRow === 'function') updateModelGuideActiveRow(modelId);
       }
 
       function updateActiveModelMenuHighlight() {

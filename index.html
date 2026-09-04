@@ -2989,13 +2989,13 @@
     .model-guide-toggle-btn {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: 11px;
+      gap: 3px;
+      font-size: 10.5px;
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.1);
       border: 1px solid rgba(56, 189, 248, 0.25);
-      padding: 3px 8px;
-      border-radius: 6px;
+      padding: 2px 7px;
+      border-radius: 5px;
       cursor: pointer;
       transition: all 0.2s ease;
       font-weight: 600;
@@ -3006,53 +3006,54 @@
       color: #7dd3fc;
     }
     .model-comparison-container {
-      margin-top: 8px;
+      margin-top: 6px;
       background: rgba(13, 19, 33, 0.85);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
-      padding: 8px;
+      padding: 0;
+      overflow: hidden;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
       transition: all 0.3s ease;
     }
     .model-comparison-table-wrap {
       width: 100%;
       overflow-x: auto;
-      border-radius: 6px;
     }
     .model-guide-table {
       width: 100%;
+      min-width: 580px;
       border-collapse: collapse;
-      font-size: 11px;
+      font-size: 10px;
       text-align: left;
-      line-height: 1.35;
+      line-height: 1.25;
     }
     .model-guide-table th {
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.05);
       color: #94a3b8;
       font-weight: 700;
-      padding: 6px 8px;
+      padding: 5px 7px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       white-space: nowrap;
-      font-size: 10.5px;
+      font-size: 10px;
       letter-spacing: -0.2px;
     }
     .model-guide-table td {
-      padding: 6px 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 4px 7px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       color: #e2e8f0;
       vertical-align: middle;
-      font-size: 10.5px;
+      font-size: 10px;
+      white-space: nowrap;
     }
     .model-guide-table tr.model-row {
       cursor: pointer;
-      transition: background 0.15s ease;
+      transition: background 0.12s ease;
     }
     .model-guide-table tr.model-row:hover {
       background: rgba(255, 255, 255, 0.06);
     }
     .model-guide-table tr.model-row.active {
-      background: rgba(16, 185, 129, 0.14);
-      outline: 1px solid rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.15);
     }
     .model-guide-table tr.model-row.active td:first-child {
       color: #34d399;
@@ -3061,10 +3062,9 @@
     .speed-badge-pill {
       display: inline-flex;
       align-items: center;
-      gap: 2px;
-      font-size: 10px;
+      font-size: 9.5px;
       font-family: 'Fira Code', monospace;
-      padding: 1.5px 6px;
+      padding: 1px 5px;
       border-radius: 4px;
       background: rgba(0, 0, 0, 0.35);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -3090,8 +3090,8 @@
       display: inline-flex;
       align-items: center;
       gap: 2px;
-      font-size: 10px;
-      padding: 1.5px 6px;
+      font-size: 9.5px;
+      padding: 1px 5px;
       border-radius: 4px;
       font-weight: 600;
       white-space: nowrap;
@@ -3111,15 +3111,15 @@
       color: #f87171;
       border: 1px solid rgba(239, 68, 68, 0.25);
     }
-    .model-guide-footer-tip {
-      margin-top: 8px;
-      padding: 6px 10px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 6px;
-      border: 1px dashed rgba(255, 255, 255, 0.1);
-      font-size: 10px;
+    .model-guide-footer-tr td {
+      padding: 5px 8px;
+      background: rgba(0, 0, 0, 0.25);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: none;
+      font-size: 9.5px;
       color: #94a3b8;
-      line-height: 1.4;
+      white-space: normal;
+      line-height: 1.35;
     }
   </style>
 </head>
@@ -3915,54 +3915,58 @@
             <table class="model-guide-table">
               <thead>
                 <tr>
-                  <th style="white-space:nowrap;">모델명</th>
-                  <th style="white-space:nowrap;">⚡ 속도</th>
-                  <th>🎨 품질 및 묘사력</th>
-                  <th style="white-space:nowrap;">🛡️ 검열 민감도</th>
-                  <th>추천 용도</th>
+                  <th style="width:23%;">모델명</th>
+                  <th style="width:16%;">⚡ 속도</th>
+                  <th style="width:23%;">🎨 품질</th>
+                  <th style="width:18%;">🛡️ 검열</th>
+                  <th style="width:20%;">추천 용도</th>
                 </tr>
               </thead>
               <tbody>
                 <tr class="model-row" data-model="gemini-3.8-flash">
-                  <td style="white-space:nowrap;"><strong>⚡ 3.8 Flash</strong> <span style="font-size:9.5px; color:#fbbf24; font-weight:700;">(권장 ⭐)</span></td>
-                  <td style="white-space:nowrap;"><span class="speed-badge-pill fast">매우 빠름 (0.8~1.5s)</span></td>
-                  <td><span style="color:#fbbf24; font-size:10.5px; white-space:nowrap;">⭐⭐⭐⭐⭐</span> <span style="font-size:9.5px; color:#94a3b8;">최신 렌더링 문법 최적화</span></td>
-                  <td style="white-space:nowrap;"><span class="safety-tag-pill open">🛡️ 매우 관대함 (최저 거부)</span></td>
-                  <td style="font-size:10px; color:#cbd5e1;">기본 메인 프롬프트 & 일상 대화</td>
+                  <td><strong>⚡ 3.8 Flash</strong> <span style="font-size:9px; color:#fbbf24; font-weight:700;">(권장⭐)</span></td>
+                  <td><span class="speed-badge-pill fast">⚡ 0.8~1.5s</span></td>
+                  <td><span style="color:#fbbf24; font-size:10px;">⭐⭐⭐⭐⭐</span> <span style="font-size:9px; color:#94a3b8;">최신 최적화</span></td>
+                  <td><span class="safety-tag-pill open">🛡️ 최저 거부</span></td>
+                  <td style="font-size:9.5px; color:#cbd5e1;">메인 프롬프트 & 대화</td>
                 </tr>
                 <tr class="model-row" data-model="gemini-3.5-flash-lite">
-                  <td style="white-space:nowrap;"><strong>🚀 3.5 Flash-Lite</strong></td>
-                  <td style="white-space:nowrap;"><span class="speed-badge-pill turbo">초고속 (0.3~0.7s)</span></td>
-                  <td><span style="color:#fbbf24; font-size:10.5px; white-space:nowrap;">⭐⭐⭐</span> <span style="font-size:9.5px; color:#94a3b8;">핵심 위주 간결한 영작</span></td>
-                  <td style="white-space:nowrap;"><span class="safety-tag-pill open">🛡️ 매우 관대함 (지시 준수)</span></td>
-                  <td style="font-size:10px; color:#cbd5e1;">대용량 텍스트 트랜스포머 가공</td>
+                  <td><strong>🚀 3.5 Flash-Lite</strong></td>
+                  <td><span class="speed-badge-pill turbo">⚡ 0.3~0.7s</span></td>
+                  <td><span style="color:#fbbf24; font-size:10px;">⭐⭐⭐</span> <span style="font-size:9px; color:#94a3b8;">초고속 영작</span></td>
+                  <td><span class="safety-tag-pill open">🛡️ 지시 준수</span></td>
+                  <td style="font-size:9.5px; color:#cbd5e1;">대용량 텍스트 가공</td>
                 </tr>
                 <tr class="model-row" data-model="gemini-3.5-flash">
-                  <td style="white-space:nowrap;"><strong>⚡ 3.5 Flash</strong></td>
-                  <td style="white-space:nowrap;"><span class="speed-badge-pill fast">빠름 (1.0~1.8s)</span></td>
-                  <td><span style="color:#fbbf24; font-size:10.5px; white-space:nowrap;">⭐⭐⭐⭐</span> <span style="font-size:9.5px; color:#94a3b8;">안정적이고 균형 잡힌 출력</span></td>
-                  <td style="white-space:nowrap;"><span class="safety-tag-pill open">🛡️ 관대함</span></td>
-                  <td style="font-size:10px; color:#cbd5e1;">안정적인 표준 작업</td>
+                  <td><strong>⚡ 3.5 Flash</strong></td>
+                  <td><span class="speed-badge-pill fast">⚡ 1.0~1.8s</span></td>
+                  <td><span style="color:#fbbf24; font-size:10px;">⭐⭐⭐⭐</span> <span style="font-size:9px; color:#94a3b8;">균형 출력</span></td>
+                  <td><span class="safety-tag-pill open">🛡️ 관대함</span></td>
+                  <td style="font-size:9.5px; color:#cbd5e1;">안정적 표준 작업</td>
                 </tr>
                 <tr class="model-row" data-model="gemini-3.1-pro-preview">
-                  <td style="white-space:nowrap;"><strong>🧠 3.1 Pro</strong></td>
-                  <td style="white-space:nowrap;"><span class="speed-badge-pill">보통 (2.5~4.5s)</span></td>
-                  <td><span style="color:#fbbf24; font-size:10.5px; white-space:nowrap;">⭐⭐⭐⭐⭐</span> <span style="font-size:9.5px; color:#94a3b8;">시네마틱 미장센/조명 극대화</span></td>
-                  <td style="white-space:nowrap;"><span class="safety-tag-pill caution">⚠️ 다소 보수적 (주의)</span></td>
-                  <td style="font-size:10px; color:#cbd5e1;">고난도 시나리오 & 스토리보드</td>
+                  <td><strong>🧠 3.1 Pro</strong></td>
+                  <td><span class="speed-badge-pill">⚡ 2.5~4.5s</span></td>
+                  <td><span style="color:#fbbf24; font-size:10px;">⭐⭐⭐⭐⭐</span> <span style="font-size:9px; color:#94a3b8;">시네마틱 연출</span></td>
+                  <td><span class="safety-tag-pill caution">⚠️ 다소 보수적</span></td>
+                  <td style="font-size:9.5px; color:#cbd5e1;">고난도 시나리오</td>
                 </tr>
                 <tr class="model-row" data-model="gemini-2.0-flash-thinking-exp-01-21">
-                  <td style="white-space:nowrap;"><strong>💡 Thinking Mode</strong></td>
-                  <td style="white-space:nowrap;"><span class="speed-badge-pill slow">느림 (4.0~8.0s+)</span></td>
-                  <td><span style="color:#fbbf24; font-size:10.5px; white-space:nowrap;">⭐⭐⭐⭐⭐</span> <span style="font-size:9.5px; color:#94a3b8;">다단계 추론 & 논리적 완결성</span></td>
-                  <td style="white-space:nowrap;"><span class="safety-tag-pill strict">🔒 가장 엄격함 (추론 검열)</span></td>
-                  <td style="font-size:10px; color:#cbd5e1;">복잡한 설정 기획 & 심층 설계</td>
+                  <td><strong>💡 Thinking</strong></td>
+                  <td><span class="speed-badge-pill slow">⚡ 4.0~8.0s+</span></td>
+                  <td><span style="color:#fbbf24; font-size:10px;">⭐⭐⭐⭐⭐</span> <span style="font-size:9px; color:#94a3b8;">심층 추론</span></td>
+                  <td><span class="safety-tag-pill strict">🔒 엄격 검열</span></td>
+                  <td style="font-size:9.5px; color:#cbd5e1;">설정 기획 & 심층 설계</td>
                 </tr>
               </tbody>
+              <tfoot>
+                <tr class="model-guide-footer-tr">
+                  <td colspan="5">
+                    💡 <strong>자동 우회:</strong> 검열 감지 시 3단계 시네마틱 프레임 우회 및 하위 모델 순차 폴백 자동 실행 (행 클릭 시 모델 선택)
+                  </td>
+                </tr>
+              </tfoot>
             </table>
-          </div>
-          <div class="model-guide-footer-tip">
-            💡 <strong>자동 우회 안내:</strong> 검열 차단 발생 시 백그라운드에서 자동으로 <strong>3단계 영화 시나리오 프레임 우회 및 하위 모델 순차 폴백</strong>이 작동합니다. (표의 행을 클릭하면 해당 모델이 즉시 선택됩니다.)
           </div>
         </div>
       </div>

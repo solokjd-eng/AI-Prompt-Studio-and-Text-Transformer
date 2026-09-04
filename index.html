@@ -3239,6 +3239,18 @@
               <span id="activeEngineBadge" style="color: #10b981; font-weight: 700; font-size: 11px;">FLUX 1024p</span>
             </div>
 
+            <!-- Option 0: OFF / Pure Chat Mode -->
+            <div class="engine-option-item" data-engine="off" style="padding: 9px 12px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; font-size: 12px; transition: all 0.2s; margin-bottom: 4px;">
+              <div>
+                <div style="font-weight: 700; color: #cbd5e1; display: flex; align-items: center; gap: 6px;">
+                  <span>🚫 이미지 생성 끄기</span>
+                  <span style="background: rgba(148,163,184,0.18); color: #94a3b8; font-size: 10px; padding: 1px 5px; border-radius: 4px;">대화 전용</span>
+                </div>
+                <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;">이미지 생성 없이 100% 텍스트로만 대화</div>
+              </div>
+              <span class="engine-check" style="color: #94a3b8; font-weight: 700; display: none;">✓</span>
+            </div>
+
             <!-- Option 1: 576p (Default / No Token Required) -->
             <div class="engine-option-item" data-engine="flux-576p" style="padding: 9px 12px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; font-size: 12px; transition: all 0.2s; margin-bottom: 4px;">
               <div>
@@ -5652,7 +5664,7 @@
       if (!hasToken && chatSelectedEngine === 'flux-1024p') {
         chatSelectedEngine = 'flux-576p';
         localStorage.setItem('gemini_chat_engine', 'flux-576p');
-      } else if (!chatSelectedEngine || (chatSelectedEngine !== 'flux-576p' && chatSelectedEngine !== 'flux-1024p')) {
+      } else if (!chatSelectedEngine || (chatSelectedEngine !== 'flux-576p' && chatSelectedEngine !== 'flux-1024p' && chatSelectedEngine !== 'off')) {
         chatSelectedEngine = hasToken ? 'flux-1024p' : 'flux-576p';
         localStorage.setItem('gemini_chat_engine', chatSelectedEngine);
       }
@@ -5663,6 +5675,9 @@
 
     function updateActiveEngineHighlight() {
       const activeEngineBadge = document.getElementById('activeEngineBadge');
+      const btnChatRatioPicker = document.getElementById('btnChatRatioPicker');
+      const geminiChatInput = document.getElementById('geminiChatInput');
+
       document.querySelectorAll('.engine-option-item').forEach(function(el) {
         var eng = el.getAttribute('data-engine');
         var isMatch = eng === chatSelectedEngine;
@@ -5678,12 +5693,33 @@
       });
 
       if (activeEngineBadge) {
-        if (chatSelectedEngine === 'flux-1024p') {
+        if (chatSelectedEngine === 'off') {
+          activeEngineBadge.textContent = '🚫 끄기 (대화 전용)';
+          activeEngineBadge.style.color = '#94a3b8';
+        } else if (chatSelectedEngine === 'flux-1024p') {
           activeEngineBadge.textContent = '🌟 FLUX 1024p';
           activeEngineBadge.style.color = '#10b981';
         } else {
           activeEngineBadge.textContent = '⚡ FLUX 576p';
           activeEngineBadge.style.color = '#60a5fa';
+        }
+      }
+
+      if (btnChatRatioPicker) {
+        if (chatSelectedEngine === 'off') {
+          btnChatRatioPicker.style.opacity = '0.45';
+          btnChatRatioPicker.style.filter = 'grayscale(100%)';
+          btnChatRatioPicker.title = '🎨 이미지 생성: 꺼짐 (클릭하여 켜기/설정)';
+          if (geminiChatInput && geminiChatInput.placeholder.includes('고양이 그림')) {
+            geminiChatInput.placeholder = 'Gemini에게 무엇이든 질문하세요 (텍스트 대화 전용)';
+          }
+        } else {
+          btnChatRatioPicker.style.opacity = '1';
+          btnChatRatioPicker.style.filter = 'none';
+          btnChatRatioPicker.title = '🎨 이미지 생성 엔진 & 비율 설정 (' + (chatSelectedEngine === 'flux-1024p' ? '1024p' : '576p') + ')';
+          if (geminiChatInput && geminiChatInput.placeholder.includes('텍스트 대화 전용')) {
+            geminiChatInput.placeholder = "Gemini에게 질문하거나, '고양이 그림 그려줘'처럼 이미지 생성을 요청해보세요";
+          }
         }
       }
     }
@@ -6263,7 +6299,7 @@
         });
       });
 
-      // Clean 2-option Engine click handlers (576p vs 1024p)
+      // Engine click handlers (off vs 576p vs 1024p)
       document.querySelectorAll('.engine-option-item').forEach(function(item) {
         item.addEventListener('click', function(e) {
           e.stopPropagation();
@@ -6280,7 +6316,14 @@
           localStorage.setItem('gemini_chat_engine', eng);
           updateActiveEngineHighlight();
           geminiRatioPopup.style.display = 'none';
-          showToast(eng === 'flux-1024p' ? '🌟 FLUX.1 (1024p) 엔진 선택됨' : '⚡ FLUX.1 (576p) 선택됨');
+
+          if (eng === 'off') {
+            showToast('🚫 이미지 생성 기능이 꺼졌습니다. (순수 텍스트 대화 전용)');
+          } else if (eng === 'flux-1024p') {
+            showToast('🌟 FLUX.1 (1024p) 엔진 선택됨');
+          } else {
+            showToast('⚡ FLUX.1 (576p) 선택됨');
+          }
         });
       });
 
@@ -6969,6 +7012,7 @@
        ------------------------------------------------------------- */
     function detectImageGenerationIntent(text) {
       if (!text) return false;
+      if (chatSelectedEngine === 'off') return false;
       var trimmed = text.trim();
 
       // 1. Explicit Slash Commands -> Always trigger image generation

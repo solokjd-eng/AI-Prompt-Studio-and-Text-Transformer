@@ -3221,31 +3221,34 @@
           </div>
 
           <!-- Authentic Floating Image Engine & Aspect Ratio Popup Menu -->
-          <div class="gemini-ratio-popup" id="geminiRatioPopup" style="width: 290px;">
+          <div class="gemini-ratio-popup" id="geminiRatioPopup" style="width: 305px;">
             <div class="ratio-popup-header">
-              <span>🎨 AI 이미지 렌더링 엔진</span>
-              <span id="activeEngineBadge" style="color: #10b981; font-weight: 700; font-size: 11px;">FLUX Realism</span>
+              <span>🎨 AI 이미지 렌더링 화질</span>
+              <span id="activeEngineBadge" style="color: #10b981; font-weight: 700; font-size: 11px;">FLUX 1024p</span>
             </div>
-            <div class="engine-option-item active" data-engine="flux-realism" style="padding: 7px 10px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; font-size: 12px; transition: all 0.2s; margin-bottom: 2px;">
+
+            <!-- Option 1: 576p (Default / No Token Required) -->
+            <div class="engine-option-item" data-engine="flux-576p" style="padding: 9px 12px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; font-size: 12px; transition: all 0.2s; margin-bottom: 4px;">
               <div>
-                <div style="font-weight: 700; color: #e2e8f0;">🌟 FLUX.1 Realism (8K 극실사)</div>
-                <div style="font-size: 10px; color: #94a3b8;">초고화질 디테일·마스터 조명 (추천)</div>
+                <div style="font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 6px;">
+                  <span>⚡ FLUX.1 기본 화질 (576p)</span>
+                  <span style="background: rgba(100,116,139,0.25); color: #94a3b8; font-size: 10px; padding: 1px 5px; border-radius: 4px;">무료·키 불필요</span>
+                </div>
+                <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">2초 초고속 생성 (빠른 스케치용)</div>
               </div>
               <span class="engine-check" style="color: #10b981; font-weight: 700;">✓</span>
             </div>
-            <div class="engine-option-item" data-engine="turbo" style="padding: 7px 10px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; font-size: 12px; transition: all 0.2s; margin-bottom: 2px;">
+
+            <!-- Option 2: 1024p (High Resolution / Requires Hugging Face Token) -->
+            <div class="engine-option-item" id="engineOption1024p" data-engine="flux-1024p" style="padding: 9px 12px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; font-size: 12px; transition: all 0.2s; margin-bottom: 6px;">
               <div>
-                <div style="font-weight: 700; color: #e2e8f0;">🎨 KREA 스타일 / SDXL Pro</div>
-                <div style="font-size: 10px; color: #94a3b8;">풍부한 색감·Krea 화풍 최적화</div>
+                <div style="font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 6px;">
+                  <span>🌟 FLUX.1 고화질 (1024p)</span>
+                  <span id="badge1024pStatus" style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 10px; padding: 1px 5px; border-radius: 4px;">1K 원본</span>
+                </div>
+                <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;" id="desc1024pStatus">Hugging Face 1024x1024 마스터 렌더링</div>
               </div>
-              <span class="engine-check" style="display: none; color: #10b981; font-weight: 700;">✓</span>
-            </div>
-            <div class="engine-option-item" data-engine="flux" style="padding: 7px 10px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; font-size: 12px; transition: all 0.2s; margin-bottom: 6px;">
-              <div>
-                <div style="font-weight: 700; color: #e2e8f0;">⚡ FLUX.1 Fast (초고속)</div>
-                <div style="font-size: 10px; color: #94a3b8;">빠른 2초 생성 (경량 모델)</div>
-              </div>
-              <span class="engine-check" style="display: none; color: #10b981; font-weight: 700;">✓</span>
+              <span class="engine-check" style="color: #10b981; font-weight: 700;">✓</span>
             </div>
 
             <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 6px 0;"></div>
@@ -3316,17 +3319,22 @@
 
   <!-- Modals -->
 
-  <!-- 1. Gemini API Key Modal -->
+  <!-- 1. Gemini API Key & Hugging Face Token Modal -->
   <div class="modal-backdrop" id="apiModal">
     <div class="modal-box">
       <div class="modal-header">
         <span class="modal-title">🔑 AI API 키 및 고화질 엔진 설정</span>
         <button class="btn-close-modal" id="btnCloseApiModal">✕</button>
       </div>
+
+      <!-- Section 1: Google Gemini API Key -->
       <div class="form-group">
         <label class="form-label">Google Gemini API Key (대화 & 프롬프트 최적화용)</label>
         <input type="password" class="form-input" id="apiKeyInput" placeholder="AIzaSy...">
-        <span style="font-size: 11px; color: var(--text-dim);">API 키는 외부 서버로 전송되지 않으며 사용자의 브라우저 LocalStorage에만 안전하게 저장됩니다.</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+          <span style="font-size: 11px; color: var(--text-dim);">API 키는 브라우저 LocalStorage에만 안전하게 저장됩니다.</span>
+          <button type="button" class="btn-action-sm" id="btnTestGeminiKey" style="font-size: 11px; padding: 4px 10px;">⚡ Gemini 연결 확인</button>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">우선 순위 AI 엔진 모델</label>
@@ -3337,17 +3345,22 @@
           <option value="gemini-3.5-flash">💡 확장된 사고 모델 (Thinking Mode)</option>
         </select>
       </div>
+
+      <!-- Section 2: Hugging Face Token -->
       <div class="form-group" style="margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
         <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
-          <span>🤗 Hugging Face Token (FLUX.1-dev 28스텝 마스터 4K용)</span>
+          <span>🤗 Hugging Face Token (1024p 고화질 렌더링용)</span>
           <a href="https://huggingface.co/settings/tokens" target="_blank" style="color: #60a5fa; font-size: 11px; text-decoration: underline;">무료 토큰 발급 ↗</a>
         </label>
         <input type="password" class="form-input" id="hfTokenInput" placeholder="hf_...">
-        <span style="font-size: 11px; color: var(--text-dim);">무료 발급 토큰을 입력하시면 4스텝 압축 없는 <strong>FLUX.1-dev (28스텝 마스터 풀버전)</strong> 및 <strong>SDXL 1.0</strong> 8K 극상 화질로 즉시 생성됩니다.</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+          <span style="font-size: 11px; color: var(--text-dim);">토큰 등록 시 <strong>1024x1024 (1K 원본 고화질)</strong> 모드가 활성화됩니다.</span>
+          <button type="button" class="btn-action-sm" id="btnTestHfToken" style="font-size: 11px; padding: 4px 10px;">🤗 HF 토큰 확인</button>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn-action-sm" id="btnTestKey">⚡ 연결 테스트</button>
-        <button class="btn-save" id="btnSaveApiKey">저장하기</button>
+
+      <div class="modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn-save" id="btnSaveApiKey" style="padding: 9px 24px;">설정 저장하기</button>
       </div>
     </div>
   </div>
@@ -5145,52 +5158,59 @@
       }
 
       updateApiStatus();
+      updateEngineOptionLockState();
       apiModal.style.display = 'none';
       showToast('API 키 및 고화질 엔진 설정이 저장되었습니다.');
     });
 
-        btnTestKey.addEventListener('click', async function() {
+    // 1. Separate Google Gemini API Key Test
+    const btnTestGeminiKey = document.getElementById('btnTestGeminiKey');
+    btnTestGeminiKey?.addEventListener('click', async function() {
       var key = apiKeyInput.value.trim();
-      if (!key) { showToast('API 키를 입력하세요.'); return; }
-      btnTestKey.textContent = '확인 중...';
+      if (!key) { showToast('Gemini API 키를 입력하세요.'); return; }
+      btnTestGeminiKey.textContent = '확인 중...';
       try {
-        // 1. Check API Key validity using official Google Gemini models list endpoint
         var listUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=" + encodeURIComponent(key);
         var res = await fetch(listUrl);
         var data = await res.json().catch(function() { return {}; });
 
         if (!res.ok) {
           var errMsg = data.error?.message || ("HTTP " + res.status);
-          showToast('❌ API 키 인증 실패: ' + errMsg);
+          showToast('❌ Gemini API 인증 실패: ' + errMsg);
           return;
         }
 
-        // 2. Test generation with model fallback
-        var targetModel = modelSelect.value || 'gemini-1.5-flash';
-        var modelsToPing = [targetModel, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite'];
-        var modelSuccess = false;
-
-        for (var i = 0; i < modelsToPing.length; i++) {
-          try {
-            var pingUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + modelsToPing[i] + ":generateContent?key=" + encodeURIComponent(key);
-            var pingRes = await fetch(pingUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents: [{ parts: [{ text: "Hi" }] }] })
-            });
-            if (pingRes.ok) {
-              modelSuccess = true;
-              break;
-            }
-          } catch (pe) {}
-        }
-
-        showToast('✅ Google Gemini API 키 정상 연결 성공!');
-
+        showToast('✅ Google Gemini API 키 정상 연결 확인 완료!');
       } catch (e) {
-        showToast('네트워크 오류: ' + e.message);
+        showToast('❌ Gemini 연결 오류: ' + e.message);
       } finally {
-        btnTestKey.textContent = '⚡ 연결 테스트';
+        btnTestGeminiKey.textContent = '⚡ Gemini 연결 확인';
+      }
+    });
+
+    // 2. Separate Hugging Face Token Test
+    const btnTestHfToken = document.getElementById('btnTestHfToken');
+    btnTestHfToken?.addEventListener('click', async function() {
+      var hfToken = (document.getElementById('hfTokenInput')?.value || '').trim();
+      if (!hfToken) { showToast('Hugging Face 토큰을 입력하세요.'); return; }
+      btnTestHfToken.textContent = '확인 중...';
+      try {
+        var whoamiUrl = "https://huggingface.co/api/whoami-v2";
+        var res = await fetch(whoamiUrl, {
+          headers: { 'Authorization': 'Bearer ' + hfToken }
+        });
+
+        if (res.ok) {
+          var userObj = await res.json();
+          var uName = userObj.name || userObj.username || '사용자';
+          showToast('✅ Hugging Face 인증 성공! (계정: ' + uName + ') 1024p 고화질 활성화됨');
+        } else {
+          showToast('❌ Hugging Face 인증 실패: 올바른 토큰인지 확인해주세요.');
+        }
+      } catch (e) {
+        showToast('❌ HF 연결 오류: ' + e.message);
+      } finally {
+        btnTestHfToken.textContent = '🤗 HF 토큰 확인';
       }
     });
 
@@ -5382,9 +5402,86 @@
     let chatAttachedImageName = '';
     let isGeminiChatResponding = false;
     let chatSelectedRatio = localStorage.getItem('gemini_chat_ratio') || '1:1';
-    let chatSelectedEngine = localStorage.getItem('gemini_chat_engine') || 'flux-realism';
+    let chatSelectedEngine = localStorage.getItem('gemini_chat_engine') || (state.hfToken ? 'flux-1024p' : 'flux-576p');
     let activeLightboxPrompt = '';
     let activeLightboxSrc = '';
+
+    // Update Lock State and Tooltip for 1024p Engine Option
+    function updateEngineOptionLockState() {
+      const opt1024 = document.getElementById('engineOption1024p');
+      const badge1024 = document.getElementById('badge1024pStatus');
+      const desc1024 = document.getElementById('desc1024pStatus');
+      const hasToken = !!state.hfToken;
+
+      if (opt1024) {
+        if (hasToken) {
+          opt1024.style.opacity = '1';
+          opt1024.style.cursor = 'pointer';
+          opt1024.setAttribute('title', 'Hugging Face 1024x1024 무압축 고화질 마스터 렌더링');
+          if (badge1024) {
+            badge1024.textContent = '1K 원본';
+            badge1024.style.background = 'rgba(16,185,129,0.15)';
+            badge1024.style.color = '#10b981';
+          }
+          if (desc1024) {
+            desc1024.textContent = 'Hugging Face 1024x1024 마스터 렌더링';
+            desc1024.style.color = '#94a3b8';
+          }
+        } else {
+          opt1024.style.opacity = '0.65';
+          opt1024.style.cursor = 'pointer';
+          opt1024.setAttribute('title', '🔒 Hugging Face 토큰을 등록하시면 1024p 고화질이 활성화됩니다. 클릭하여 설정 열기');
+          if (badge1024) {
+            badge1024.textContent = '🔒 토큰 필요';
+            badge1024.style.background = 'rgba(239,68,68,0.15)';
+            badge1024.style.color = '#f87171';
+          }
+          if (desc1024) {
+            desc1024.textContent = '🔒 토큰 등록 시 1024x1024 고화질 잠금 해제 (클릭)';
+            desc1024.style.color = '#fca5a5';
+          }
+        }
+      }
+
+      // Auto fallback if 1024p was selected but token was removed
+      if (!hasToken && chatSelectedEngine === 'flux-1024p') {
+        chatSelectedEngine = 'flux-576p';
+        localStorage.setItem('gemini_chat_engine', 'flux-576p');
+      } else if (!chatSelectedEngine || (chatSelectedEngine !== 'flux-576p' && chatSelectedEngine !== 'flux-1024p')) {
+        chatSelectedEngine = hasToken ? 'flux-1024p' : 'flux-576p';
+        localStorage.setItem('gemini_chat_engine', chatSelectedEngine);
+      }
+
+      updateActiveEngineHighlight();
+    }
+    window.updateEngineOptionLockState = updateEngineOptionLockState;
+
+    function updateActiveEngineHighlight() {
+      const activeEngineBadge = document.getElementById('activeEngineBadge');
+      document.querySelectorAll('.engine-option-item').forEach(function(el) {
+        var eng = el.getAttribute('data-engine');
+        var isMatch = eng === chatSelectedEngine;
+        if (isMatch) {
+          el.classList.add('active');
+          var check = el.querySelector('.engine-check');
+          if (check) check.style.display = 'inline';
+        } else {
+          el.classList.remove('active');
+          var check = el.querySelector('.engine-check');
+          if (check) check.style.display = 'none';
+        }
+      });
+
+      if (activeEngineBadge) {
+        if (chatSelectedEngine === 'flux-1024p') {
+          activeEngineBadge.textContent = '🌟 FLUX 1024p';
+          activeEngineBadge.style.color = '#10b981';
+        } else {
+          activeEngineBadge.textContent = '⚡ FLUX 576p';
+          activeEngineBadge.style.color = '#60a5fa';
+        }
+      }
+    }
 
     function initGeminiChat() {
       renderRecentChatsList();
@@ -5416,18 +5513,15 @@
       const activeEngineBadge = document.getElementById('activeEngineBadge');
 
       if (activeRatioBadge) activeRatioBadge.textContent = chatSelectedRatio;
-      if (activeEngineBadge) {
-        var shortEng = (chatSelectedEngine === 'flux-realism' ? 'FLUX Realism' : (chatSelectedEngine === 'turbo' ? 'KREA SDXL' : 'FLUX Fast'));
-        activeEngineBadge.textContent = shortEng;
-      }
       updateActiveRatioHighlight();
-      updateActiveEngineHighlight();
+      updateEngineOptionLockState();
 
       btnChatRatioPicker?.addEventListener('click', function(e) {
         e.stopPropagation();
         var isShown = geminiRatioPopup.style.display === 'flex';
         geminiRatioPopup.style.display = isShown ? 'none' : 'flex';
         if (geminiModelPopupMenu) geminiModelPopupMenu.style.display = 'none';
+        updateEngineOptionLockState();
       });
 
       // Ratio click handlers
@@ -5444,19 +5538,24 @@
         });
       });
 
-      // Engine click handlers
+      // Clean 2-option Engine click handlers (576p vs 1024p)
       document.querySelectorAll('.engine-option-item').forEach(function(item) {
         item.addEventListener('click', function(e) {
           e.stopPropagation();
           var eng = item.getAttribute('data-engine');
+          
+          if (eng === 'flux-1024p' && !state.hfToken) {
+            showToast('🔒 Hugging Face 토큰을 등록하시면 1024p 고화질이 활성화됩니다.');
+            apiModal.style.display = 'flex';
+            geminiRatioPopup.style.display = 'none';
+            return;
+          }
+
           chatSelectedEngine = eng;
           localStorage.setItem('gemini_chat_engine', eng);
           updateActiveEngineHighlight();
-          var engFull = (eng === 'flux-realism' ? '🌟 FLUX.1 Realism (8K 극실사)' : (eng === 'turbo' ? '🎨 KREA 스타일 / SDXL Pro' : '⚡ FLUX.1 Fast (초고속)'));
-          var engShort = (eng === 'flux-realism' ? 'FLUX Realism' : (eng === 'turbo' ? 'KREA SDXL' : 'FLUX Fast'));
-          if (activeEngineBadge) activeEngineBadge.textContent = engShort;
           geminiRatioPopup.style.display = 'none';
-          showToast('🎨 AI 렌더링 엔진: ' + engFull + ' 설정 완료!');
+          showToast(eng === 'flux-1024p' ? '🌟 FLUX.1 고화질 (1024p) 엔진 선택됨' : '⚡ FLUX.1 기본 화질 (576p) 선택됨');
         });
       });
 
@@ -5466,21 +5565,6 @@
             el.classList.add('active');
           } else {
             el.classList.remove('active');
-          }
-        });
-      }
-
-      function updateActiveEngineHighlight() {
-        document.querySelectorAll('.engine-option-item').forEach(function(el) {
-          var isMatch = el.getAttribute('data-engine') === chatSelectedEngine;
-          if (isMatch) {
-            el.classList.add('active');
-            var check = el.querySelector('.engine-check');
-            if (check) check.style.display = 'inline';
-          } else {
-            el.classList.remove('active');
-            var check = el.querySelector('.engine-check');
-            if (check) check.style.display = 'none';
           }
         });
       }
@@ -6348,13 +6432,15 @@
         return translated + ", photorealistic photograph, 8k resolution, highly detailed, cinematic lighting";
       }
 
-      // Tier 0: Hugging Face Serverless Inference API (FLUX.1-dev 28-step Master Quality / SDXL 1.0)
-      if (state.hfToken) {
+      // Tier 0: Hugging Face Serverless Inference (1024p High Quality Master Rendering)
+      if (chatSelectedEngine === 'flux-1024p' && state.hfToken) {
         var finalEnglishPrompt0 = await getEnhancedEnglishPrompt(userPrompt);
-        var activeEngine0 = chatSelectedEngine || 'flux-realism';
-        var hfModelsToTry = (activeEngine0 === 'turbo' 
-          ? ['stabilityai/stable-diffusion-xl-base-1.0', 'black-forest-labs/FLUX.1-dev', 'black-forest-labs/FLUX.1-schnell']
-          : ['black-forest-labs/FLUX.1-dev', 'stabilityai/stable-diffusion-xl-base-1.0', 'black-forest-labs/FLUX.1-schnell']);
+        var hfModelsToTry = [
+          'ByteDance/SDXL-Lightning',
+          'stabilityai/stable-diffusion-xl-base-1.0',
+          'black-forest-labs/FLUX.1-schnell',
+          'black-forest-labs/FLUX.1-dev'
+        ];
 
         for (var h = 0; h < hfModelsToTry.length; h++) {
           try {
@@ -6367,7 +6453,13 @@
                 'Authorization': 'Bearer ' + state.hfToken,
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ inputs: finalEnglishPrompt0 })
+              body: JSON.stringify({
+                inputs: finalEnglishPrompt0,
+                parameters: {
+                  width: dims.w,
+                  height: dims.h
+                }
+              })
             });
 
             if (hfRes.ok) {
@@ -6379,11 +6471,11 @@
                 reader.readAsDataURL(blob0);
               });
 
-              var displayModelName = hfModelName.includes('FLUX.1-dev') ? 'FLUX.1-dev (28스텝 마스터)' : (hfModelName.includes('stable-diffusion-xl') ? 'SDXL 1.0 (4K)' : 'FLUX.1 (HF Cloud)');
+              var displayModelName = hfModelName.includes('SDXL-Lightning') ? 'SDXL Lightning (1024p 고화질)' : (hfModelName.includes('FLUX.1-dev') ? 'FLUX.1-dev (28스텝 마스터)' : (hfModelName.includes('stable-diffusion-xl') ? 'SDXL 1.0 (1024p)' : 'FLUX.1 (1024p 고화질)'));
 
               return {
                 base64: b64Data0,
-                engine: 'Hugging Face ' + displayModelName,
+                engine: '🌟 ' + displayModelName,
                 aspectRatio: targetRatio,
                 prompt: userPrompt,
                 enhancedPrompt: finalEnglishPrompt0
@@ -6486,24 +6578,14 @@
         }
       }
 
-      // Tier 3: Universal Free Tier High-Quality AI Engine (FLUX.1 Realism 8K / KREA SDXL Pro / FLUX Fast)
+      // Tier 3: Universal Free Tier Fast AI Engine (FLUX.1 기본 화질 576p)
       try {
         var finalEnglishPrompt = await getEnhancedEnglishPrompt(userPrompt);
-        var activeEngine = chatSelectedEngine || 'flux-realism';
-        var engineModel = (activeEngine === 'turbo' ? 'turbo' : (activeEngine === 'flux' ? 'flux' : 'flux-realism'));
-        var engineDisplayName = (activeEngine === 'turbo' ? 'KREA 스타일 / SDXL Pro' : (activeEngine === 'flux' ? 'FLUX.1 Fast' : 'FLUX.1 Realism (8K 극실사)'));
-
-        // Quality booster prompt enhancements
-        var qualityEnhancedPrompt = finalEnglishPrompt;
-        if (activeEngine === 'flux-realism') {
-          qualityEnhancedPrompt += ", 8k uhd, dslr quality, hyperrealistic photograph, master lighting, highly detailed textures, sharp focus, 35mm film";
-        } else if (activeEngine === 'turbo') {
-          qualityEnhancedPrompt += ", masterpiece, vibrant colors, artistic perfection, 8k resolution, cinematic lighting, ultra-detailed";
-        }
+        var qualityEnhancedPrompt = finalEnglishPrompt + ", 8k uhd, dslr quality, hyperrealistic photograph, master lighting, highly detailed textures, sharp focus";
 
         var seed = Math.floor(Math.random() * 9999999);
         var pollinationsUrl = "https://image.pollinations.ai/prompt/" + encodeURIComponent(qualityEnhancedPrompt) + 
-          "?width=" + dims.w + "&height=" + dims.h + "&nologo=true&seed=" + seed + "&model=" + engineModel + "&enhance=true";
+          "?width=" + dims.w + "&height=" + dims.h + "&nologo=true&seed=" + seed + "&model=flux&enhance=true";
 
         var imgFetchRes = await fetch(pollinationsUrl);
         if (imgFetchRes.ok) {
@@ -6517,7 +6599,7 @@
 
           return {
             base64: b64Data,
-            engine: engineDisplayName,
+            engine: '⚡ FLUX.1 기본 화질 (576p)',
             aspectRatio: targetRatio,
             prompt: userPrompt,
             enhancedPrompt: finalEnglishPrompt
@@ -6525,23 +6607,20 @@
         } else {
           return {
             base64: pollinationsUrl,
-            engine: engineDisplayName,
+            engine: '⚡ FLUX.1 기본 화질 (576p)',
             aspectRatio: targetRatio,
             prompt: userPrompt,
             enhancedPrompt: finalEnglishPrompt
           };
         }
       } catch (fluxErr) {
-        console.warn('Pollinations high-res fetch error, using direct URL:', fluxErr);
-        var activeEngine2 = chatSelectedEngine || 'flux-realism';
-        var engineModel2 = (activeEngine2 === 'turbo' ? 'turbo' : (activeEngine2 === 'flux' ? 'flux' : 'flux-realism'));
-        var engineDisplayName2 = (activeEngine2 === 'turbo' ? 'KREA 스타일 / SDXL Pro' : (activeEngine2 === 'flux' ? 'FLUX.1 Fast' : 'FLUX.1 Realism (8K 극실사)'));
+        console.warn('Fast proxy fetch error, using direct URL:', fluxErr);
         var finalSeed = Math.floor(Math.random() * 9999999);
         var directUrl = "https://image.pollinations.ai/prompt/" + encodeURIComponent(userPrompt + ", 8k uhd, photorealistic") + 
-          "?width=" + dims.w + "&height=" + dims.h + "&nologo=true&seed=" + finalSeed + "&model=" + engineModel2 + "&enhance=true";
+          "?width=" + dims.w + "&height=" + dims.h + "&nologo=true&seed=" + finalSeed + "&model=flux&enhance=true";
         return {
           base64: directUrl,
-          engine: engineDisplayName2,
+          engine: '⚡ FLUX.1 기본 화질 (576p)',
           aspectRatio: targetRatio,
           prompt: userPrompt
         };

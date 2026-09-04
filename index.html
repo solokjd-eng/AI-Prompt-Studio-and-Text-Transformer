@@ -6350,42 +6350,50 @@
 
       // Tier 0: Hugging Face Serverless Inference API (FLUX.1-dev 28-step Master Quality / SDXL 1.0)
       if (state.hfToken) {
-        try {
-          var finalEnglishPrompt0 = await getEnhancedEnglishPrompt(userPrompt);
-          var activeEngine0 = chatSelectedEngine || 'flux-realism';
-          var hfModelName = (activeEngine0 === 'turbo' ? 'stabilityai/stable-diffusion-xl-base-1.0' : 'black-forest-labs/FLUX.1-dev');
-          var hfUrl = "https://api-inference.huggingface.co/models/" + hfModelName;
+        var finalEnglishPrompt0 = await getEnhancedEnglishPrompt(userPrompt);
+        var activeEngine0 = chatSelectedEngine || 'flux-realism';
+        var hfModelsToTry = (activeEngine0 === 'turbo' 
+          ? ['stabilityai/stable-diffusion-xl-base-1.0', 'black-forest-labs/FLUX.1-dev', 'black-forest-labs/FLUX.1-schnell']
+          : ['black-forest-labs/FLUX.1-dev', 'stabilityai/stable-diffusion-xl-base-1.0', 'black-forest-labs/FLUX.1-schnell']);
 
-          var hfRes = await fetch(hfUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + state.hfToken,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ inputs: finalEnglishPrompt0 })
-          });
+        for (var h = 0; h < hfModelsToTry.length; h++) {
+          try {
+            var hfModelName = hfModelsToTry[h];
+            var hfUrl = "https://api-inference.huggingface.co/models/" + hfModelName;
 
-          if (hfRes.ok) {
-            var blob0 = await hfRes.blob();
-            var b64Data0 = await new Promise(function(resolve, reject) {
-              var reader = new FileReader();
-              reader.onloadend = function() { resolve(reader.result); };
-              reader.onerror = reject;
-              reader.readAsDataURL(blob0);
+            var hfRes = await fetch(hfUrl, {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + state.hfToken,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ inputs: finalEnglishPrompt0 })
             });
 
-            return {
-              base64: b64Data0,
-              engine: 'Hugging Face ' + (hfModelName.includes('FLUX') ? 'FLUX.1-dev (28스텝 마스터)' : 'SDXL 1.0 (4K)'),
-              aspectRatio: targetRatio,
-              prompt: userPrompt,
-              enhancedPrompt: finalEnglishPrompt0
-            };
-          } else {
-            console.warn('HF inference returned status ' + hfRes.status + ', moving to next tiers');
+            if (hfRes.ok) {
+              var blob0 = await hfRes.blob();
+              var b64Data0 = await new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onloadend = function() { resolve(reader.result); };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob0);
+              });
+
+              var displayModelName = hfModelName.includes('FLUX.1-dev') ? 'FLUX.1-dev (28스텝 마스터)' : (hfModelName.includes('stable-diffusion-xl') ? 'SDXL 1.0 (4K)' : 'FLUX.1 (HF Cloud)');
+
+              return {
+                base64: b64Data0,
+                engine: 'Hugging Face ' + displayModelName,
+                aspectRatio: targetRatio,
+                prompt: userPrompt,
+                enhancedPrompt: finalEnglishPrompt0
+              };
+            } else {
+              console.warn('HF inference on ' + hfModelName + ' returned status ' + hfRes.status + ', trying next candidate');
+            }
+          } catch (hfErr) {
+            console.warn('HF inference attempt failed on ' + hfModelsToTry[h] + ':', hfErr);
           }
-        } catch (hfErr) {
-          console.warn('HF inference attempt failed, continuing:', hfErr);
         }
       }
 

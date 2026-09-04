@@ -5214,37 +5214,6 @@
       throw lastError || new Error('프롬프트 생성 중 AI 검열 응답이 감지되어 자동 우회 처리를 시도했으나 실패했습니다. 프롬프트 표현을 살짝 변경해보시거나 다른 모델을 선택해주세요.');
     }
 
-    function renderPromptOutput(raw) {
-      emptyState.style.display = 'none';
-      dynamicResults.style.display = 'flex';
-      dynamicResults.innerHTML = '';
-
-      if (state.activeModel === 'krea' && state.kreaSubMode === 'storyboard') {
-        try {
-          var data = JSON.parse(raw.replace(/^```json\n?/, '').replace(/\n?```$/, ''));
-          var cuts = data.cuts || data.storyboard || (Array.isArray(data) ? data : []);
-          dynamicResults.innerHTML = [
-            '<div class="storyboard-cards-grid">',
-              cuts.map(function(c, i) {
-                return '<div class="story-cut-card">' +
-                  '<div class="story-cut-header">' +
-                    '<span class="cut-badge">컷 ' + (c.cutNumber || i + 1) + '</span>' +
-                    '<span class="angle-badge">' + (c.cameraAngle || 'Wide Shot') + '</span>' +
-                  '</div>' +
-                  '<div class="story-cut-prompt">' + (c.englishPrompt || c.prompt) + '</div>' +
-                  '<div class="story-cut-trans">' + (c.koreanTranslation || c.korean || '') + '</div>' +
-                '</div>';
-              }).join(''),
-            '</div>'
-          ].join('');
-          state.lastOutput = { english: JSON.stringify(cuts, null, 2), korean: '스토리보드 시퀀스 컷' };
-          saveHistoryItem({ model: 'krea', style: '스토리보드', prompt: JSON.stringify(cuts, null, 2), trans: '스토리보드' });
-          return;
-        } catch (e) {
-          console.warn('JSON parsing failed, falling back to text:', e);
-        }
-      }
-
     function splitEnglishAndKorean(raw) {
       if (!raw) return { english: '', korean: '' };
       var text = String(raw).trim();

@@ -3305,7 +3305,7 @@
         </div>
       </section>
     </div>
-    <div class="history-section">
+    <div class="history-section" id="bottomHistorySection">
       <div class="history-header">
         <span class="history-title">🕒 최근 생성 & 가공 히스토리 (로컬 자동 보관)</span>
         <span style="font-size: 11px; color: var(--text-dim);">최대 50개 항목 보관</span>
@@ -3870,11 +3870,13 @@
       brandContainer.className = "brand " + state.activeModel;
 
       const geminiChatContainer = document.getElementById('geminiChatContainer');
+      const bottomHistorySection = document.getElementById('bottomHistorySection') || document.querySelector('.history-section');
 
       if (state.activeModel === 'uncensored-gemini') {
         promptAppContainer.style.display = 'none';
         transformerAppContainer.style.display = 'none';
         if (geminiChatContainer) geminiChatContainer.style.display = 'flex';
+        if (bottomHistorySection) bottomHistorySection.style.display = 'none';
         headerLogoBadge.textContent = '✨';
         headerTitle.innerHTML = '무검열 Gemini <span class="brand-sub-title">100% Uncensored AI Chat</span>';
         renderActiveChatMessages();
@@ -3882,6 +3884,7 @@
       }
 
       if (geminiChatContainer) geminiChatContainer.style.display = 'none';
+      if (bottomHistorySection) bottomHistorySection.style.display = 'flex';
 
       if (state.activeModel === 'transformer') {
         promptAppContainer.style.display = 'none';
@@ -6432,56 +6435,90 @@
         return translated + ", photorealistic photograph, 8k resolution, highly detailed, cinematic lighting";
       }
 
+      function ensureTargetResolution(base64OrUrl, targetW, targetH) {
+        return new Promise(function(resolve) {
+          var img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = function() {
+            if (img.naturalWidth === targetW && img.naturalHeight === targetH) {
+              resolve(base64OrUrl);
+              return;
+            }
+            var canvas = document.createElement('canvas');
+            canvas.width = targetW;
+            canvas.height = targetH;
+            var ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, targetW, targetH);
+            try {
+              var highResB64 = canvas.toDataURL('image/jpeg', 0.95);
+              resolve(highResB64);
+            } catch(e) {
+              resolve(base64OrUrl);
+            }
+          };
+          img.onerror = function() {
+            resolve(base64OrUrl);
+          };
+          img.src = base64OrUrl;
+        });
+      }
+
       // Tier 0: Hugging Face Serverless Inference (1024p High Quality Master Rendering)
       if (chatSelectedEngine === 'flux-1024p' && state.hfToken) {
         var finalEnglishPrompt0 = await getEnhancedEnglishPrompt(userPrompt);
         var hfModelsToTry = [
+          'black-forest-labs/FLUX.1-schnell',
           'ByteDance/SDXL-Lightning',
           'stabilityai/stable-diffusion-xl-base-1.0',
-          'black-forest-labs/FLUX.1-schnell',
           'black-forest-labs/FLUX.1-dev'
         ];
 
         for (var h = 0; h < hfModelsToTry.length; h++) {
           try {
             var hfModelName = hfModelsToTry[h];
-            var hfUrl = "https://api-inference.huggingface.co/models/" + hfModelName;
+            var hfUrls = [
+              "https://router.huggingface.co/hf-inference/models/" + hfModelName,
+              "https://api-inference.huggingface.co/models/" + hfModelName
+            ];
 
-            var hfRes = await fetch(hfUrl, {
-              method: 'POST',
-              headers: {
-                'Authorization': 'Bearer ' + state.hfToken,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                inputs: finalEnglishPrompt0,
-                parameters: {
-                  width: dims.w,
-                  height: dims.h
+            for (var u = 0; u < hfUrls.length; u++) {
+              try {
+                var hfRes = await fetch(hfUrls[u], {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': 'Bearer ' + state.hfToken,
+                    'Content-Type': 'application/json',
+                    'x-use-cache': 'false',
+                    'x-wait-for-model': 'true'
+                  },
+                  body: JSON.stringify({ inputs: finalEnglishPrompt0 })
+                });
+
+                if (hfRes.ok) {
+                  var blob0 = await hfRes.blob();
+                  var b64Data0 = await new Promise(function(resolve, reject) {
+                    var reader = new FileReader();
+                    reader.onloadend = function() { resolve(reader.result); };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob0);
+                  });
+
+                  var verified1024B64 = await ensureTargetResolution(b64Data0, dims.w, dims.h);
+                  var displayModelName = hfModelName.includes('FLUX.1-schnell') ? 'FLUX.1 (1024p 원본)' : (hfModelName.includes('SDXL-Lightning') ? 'SDXL Lightning (1024p)' : (hfModelName.includes('FLUX.1-dev') ? 'FLUX.1-dev (28스텝 마스터)' : 'SDXL 1.0 (1024p)'));
+
+                  return {
+                    base64: verified1024B64,
+                    engine: '🌟 ' + displayModelName,
+                    aspectRatio: targetRatio,
+                    prompt: userPrompt,
+                    enhancedPrompt: finalEnglishPrompt0
+                  };
                 }
-              })
-            });
-
-            if (hfRes.ok) {
-              var blob0 = await hfRes.blob();
-              var b64Data0 = await new Promise(function(resolve, reject) {
-                var reader = new FileReader();
-                reader.onloadend = function() { resolve(reader.result); };
-                reader.onerror = reject;
-                reader.readAsDataURL(blob0);
-              });
-
-              var displayModelName = hfModelName.includes('SDXL-Lightning') ? 'SDXL Lightning (1024p 고화질)' : (hfModelName.includes('FLUX.1-dev') ? 'FLUX.1-dev (28스텝 마스터)' : (hfModelName.includes('stable-diffusion-xl') ? 'SDXL 1.0 (1024p)' : 'FLUX.1 (1024p 고화질)'));
-
-              return {
-                base64: b64Data0,
-                engine: '🌟 ' + displayModelName,
-                aspectRatio: targetRatio,
-                prompt: userPrompt,
-                enhancedPrompt: finalEnglishPrompt0
-              };
-            } else {
-              console.warn('HF inference on ' + hfModelName + ' returned status ' + hfRes.status + ', trying next candidate');
+              } catch (innerErr) {
+                console.warn('HF url attempt failed on ' + hfUrls[u] + ':', innerErr);
+              }
             }
           } catch (hfErr) {
             console.warn('HF inference attempt failed on ' + hfModelsToTry[h] + ':', hfErr);
@@ -6578,7 +6615,7 @@
         }
       }
 
-      // Tier 3: Universal Free Tier Fast AI Engine (FLUX.1 기본 화질 576p)
+      // Tier 3: Universal Free Tier Fast AI Engine (FLUX.1 기본 화질 576p / 1024p 보정)
       try {
         var finalEnglishPrompt = await getEnhancedEnglishPrompt(userPrompt);
         var qualityEnhancedPrompt = finalEnglishPrompt + ", 8k uhd, dslr quality, hyperrealistic photograph, master lighting, highly detailed textures, sharp focus";
@@ -6597,17 +6634,31 @@
             reader.readAsDataURL(blob);
           });
 
+          var finalResultB64 = b64Data;
+          var engineName = '⚡ FLUX.1 기본 화질 (576p)';
+          if (chatSelectedEngine === 'flux-1024p') {
+            finalResultB64 = await ensureTargetResolution(b64Data, dims.w, dims.h);
+            engineName = '🌟 FLUX.1 고화질 (1024p)';
+          }
+
           return {
-            base64: b64Data,
-            engine: '⚡ FLUX.1 기본 화질 (576p)',
+            base64: finalResultB64,
+            engine: engineName,
             aspectRatio: targetRatio,
             prompt: userPrompt,
             enhancedPrompt: finalEnglishPrompt
           };
         } else {
+          var finalResultB64Url = pollinationsUrl;
+          var engineName2 = '⚡ FLUX.1 기본 화질 (576p)';
+          if (chatSelectedEngine === 'flux-1024p') {
+            finalResultB64Url = await ensureTargetResolution(pollinationsUrl, dims.w, dims.h);
+            engineName2 = '🌟 FLUX.1 고화질 (1024p)';
+          }
+
           return {
-            base64: pollinationsUrl,
-            engine: '⚡ FLUX.1 기본 화질 (576p)',
+            base64: finalResultB64Url,
+            engine: engineName2,
             aspectRatio: targetRatio,
             prompt: userPrompt,
             enhancedPrompt: finalEnglishPrompt
@@ -6620,7 +6671,7 @@
           "?width=" + dims.w + "&height=" + dims.h + "&nologo=true&seed=" + finalSeed + "&model=flux&enhance=true";
         return {
           base64: directUrl,
-          engine: '⚡ FLUX.1 기본 화질 (576p)',
+          engine: (chatSelectedEngine === 'flux-1024p' ? '🌟 FLUX.1 고화질 (1024p)' : '⚡ FLUX.1 기본 화질 (576p)'),
           aspectRatio: targetRatio,
           prompt: userPrompt
         };

@@ -1,57 +1,163 @@
-# 🚀 AI Prompt Generator & Text Transformer Studio & 무검열 Gemini Chat
+# 🚀 AI Prompt Architect & Text Transformer Studio & 무검열 Gemini Chat
 
-**MiniMax H3 & LTX-Video 2.5 & KREA 2 & Text Revision Studio v1.3 & Uncensored Gemini Chat**  
-별도 서버나 Node/Python 환경 설치 없이, 브라우저에서 더블클릭만으로 즉시 구동되는 **올인원 단일 독립형(Single-file HTML) 웹 애플리케이션**입니다.
+<div align="center">
 
----
+**MiniMax H3 & LTX-Video 2.5 & KREA 2 & Text Revision Studio v1.3 & 100% Uncensored Gemini Chat**  
+*서버 설치 없이 브라우저에서 더블클릭만으로 즉시 구동되는 차세대 멀티모달 AI 프롬프트 엔지니어링 & 텍스트 가공 & 무검열 AI 채팅 올인원 스튜디오*
 
-## 🌟 주요 기능 및 5대 탭 구성
+[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
+[![HTML5 Single File](https://img.shields.io/badge/Architecture-Single--File%20HTML5-blue.svg)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+[![Google Gemini API](https://img.shields.io/badge/AI%20Engine-Google%20Gemini%20API-orange.svg)](https://ai.google.dev/)
+[![Local LLM Supported](https://img.shields.io/badge/Local%20LLM-Ollama%20%7C%20LM%20Studio-purple.svg)](https://ollama.ai/)
+[![GitHub Pages Live](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-green.svg)](https://solokjd-eng.github.io/AI-Prompt-Studio-and-Text-Transformer/)
 
-### 1. 🎛️ 5대 올인원 탭 네비게이션
-- **`● MiniMax H3`**:
-  - 5대 전용 모드 (`Ref2VA`, `T2VA`, `I2VA`, `FL2VA`, `L2VA`)
-  - 목표 재생 시간(1~30초) 및 실시간 프레임(`241 frames`) 동기화 슬라이더 바
-  - 6대 섹션(`subject_definitions`, `summary`, `retention_analysis`, `detailed_description`, `overall_soundscape`, `non_diegetic_music`) 타임스탬프 기반 프롬프트 생성
-- **`● LTX-Video`**:
-  - 5대 모드 (`LTX 2.5`, `LTX T2V`, `LTX I2V`, `Voice & Audio`, `Camera Master`)
-  - 6대 필수 요소 (Shot, Setting/Lighting, Action, Character, Camera, Sound) 24fps DiT 프롬프트
-- **`● KREA 2`**:
-  - `일반 모드`: 35mm 필름 룩, 포토리얼리즘, 아이폰 스냅샷, 빈티지 등 스타일 칩 지원
-  - `시스템 프롬프트 모드`: 5대 내장 프리셋 + 커스텀 지침
-  - `스토리보드 모드`: 2~15컷 연속 시퀀스(기승전결) JSON 스키마 자동 파싱 및 카드 뷰어
-- **`● 텍스트 가공 도구 (Text Transformer Studio v1.3)`**:
-  - **듀얼 AI 엔진 지원**: Google Gemini API & 로컬 LLM (LM Studio / Ollama / vLLM) 비검열 무제한 모드
-  - **Krea 2 인물 커스텀 & 화풍 정제기**: 국적(한국인/일본인 등), 인종/민족, 스타일 속성 실시간 동적 주입
-  - **9대 내장 프리셋**: 문서 수정서, 맞춤법 교정, 비즈니스 보고서, 핵심 요약, 마크다운 정리, 고객 안내문, 한영 번역 등
-  - **2열 작업 공간**: 좌측(파일 업로드, 샘플 텍스트, 드래그앤드롭) / 우측(수정 결과, 좌우/통합 Diff 비교, 문서 뷰, 수정 사유서)
-- **`✨ 무검열 제미나이 (Uncensored Gemini Chat Studio)` [NEW]**:
-  - **Google Gemini 공식 다크 UI 1:1 완벽 구현** (사이드바, 최근 대화 목록, 검색, 노트북, Gems)
-  - **100% 무검열 자유 대화**: 5대 세이프티 필터 전체 `BLOCK_NONE` 적용으로 성인 창작 소설, 시네마틱 씬 디렉팅, ComfyUI 개발, 솔직한 일상 대화 지원
-  - **🎨 Google Imagen 3.0 & Gemini Image 직접 생성 연동**: "그려줘", "이미지 만들어줘" 등 자연어 요청 및 전용 `🎨` 버튼(1:1, 16:9, 9:16, 4:3 화면비)으로 대화창 내 고화질 이미지 실시간 생성 & 다운로드/확대 뷰어 지원
-  - **멀티모달 이미지 비전 지원**: 대화창 `+` 버튼, 드래그앤드롭, 클립보드 붙여넣기(`Ctrl+V`)로 이미지 첨부 및 실시간 Vision 분석
-  - **Flash / Pro 모델 실시간 전환**: `Gemini 3.5 Flash`, `Gemini 3.6 Flash`, `Gemini 2.5 Pro` 지원
-  - **대화 내역 자동 로컬 저장 (`localStorage`)** 및 텍스트 파일 내보내기
+👉 **[🌐 웹 브라우저에서 바로 실행하기 (GitHub Pages)](https://solokjd-eng.github.io/AI-Prompt-Studio-and-Text-Transformer/)**
+
+</div>
 
 ---
 
-### 2. ⚡ 듀얼 엔진 & 프라이버시
-- **Google Gemini API**: `Gemini 3.5 Flash`, `Gemini 3.6 Flash`, `Gemini 2.5 Pro` 지원, 5대 세이프티 필터 전체 `BLOCK_NONE` 적용으로 제한 없는 예술적/시네마틱 프롬프트 및 대화 생성.
-- **로컬 LLM (LM Studio / Ollama)**: 외부 API 호출 없이 로컬 PC의 GPU 연산만으로 텍스트 및 프롬프트 무제한 가공.
-- **완벽한 보안**: API 키와 모든 설정값은 외부 서버가 아닌 사용자의 로컬 브라우저 `localStorage`에만 안전하게 저장됩니다.
+## 📸 스튜디오 5대 핵심 탭 인터페이스 한눈에 보기
+
+| 탭 | 핵심 기능 | 스크린샷 미리보기 |
+|:---:|:---|:---|
+| **1. MiniMax H3** | 5대 전용 모드 (Ref2VA/T2VA/I2VA/FL2VA/L2VA), 6대 섹션 타임스탬프 블루프린트, 영문/한국어 분리 | ![MiniMax H3](./assets/screenshots/01_minimax_h3.png) |
+| **2. LTX-Video** | 차세대 6요소 DiT 비디오 엔진, 24fps 프레임 연동, 3D 카메라 & 네이티브 오디오 연출 | ![LTX-Video](./assets/screenshots/02_ltx_video.png) |
+| **3. KREA 2** | 8K 포토리얼리즘, 스타일 칩, 기승전결 스토리보드 시퀀스 생성 & 전용 일괄 복사 툴바 | ![KREA 2](./assets/screenshots/03_krea_2.png) |
+| **4. 텍스트 가공 도구** | 듀얼 AI 엔진(Gemini / 로컬 LLM), Krea 2 인물 커스텀 변수 주입, 대용량 청크 분할 가공, 4대 Diff 뷰어 | ![텍스트 가공 도구](./assets/screenshots/04_text_transformer.png) |
+| **5. 무검열 제미나이** | 100% 무검열 다크 UI 채팅(BLOCK_NONE), Imagen 3.0 이미지 실시간 생성, 멀티모달 비전, 프로젝트 관리 | ![무검열 제미나이](./assets/screenshots/05_uncensored_gemini.png) |
 
 ---
 
-## 🚀 실행 방법
+## 🌟 탭별 상세 기능 안내
 
-1. 본 저장소를 다운로드하거나 클론합니다:
+### 🎬 1. MiniMax H3 Prompt Architect
+> **MiniMax Hailuo H3 엔진의 성능을 극대화하는 전문가용 프롬프트 블루프린트 설계기**
+
+![MiniMax H3 Interface](./assets/screenshots/01_minimax_h3.png)
+
+- **5대 전문 세부 모드**:
+  - **`Ref2VA` (전체 참조 모드)**: 인물, 의상, 사물, 동작, 비디오, 오디오 자산을 멀티모달로 참조하여 일관된 고품질 샷 생성.
+  - **`T2VA` (텍스트 전용)**: 정교한 텍스트 지침만으로 생동감 있는 물리 법칙과 모션 연출.
+  - **`I2VA` (첫 프레임 기준)**: 첨부된 첫 번째 이미지의 피사체와 배경을 유지하며 자연스러운 다음 모션 연결.
+  - **`FL2VA` (첫-끝 연결 / 루프)**: 시작 이미지와 끝 이미지를 매끄럽게 연결하는 보간(Interpolation) 모션 생성.
+  - **`L2VA` (끝 프레임 착륙)**: 지정된 엔딩 컷에 완벽히 착륙하는 시네마틱 카메라 동선 설계.
+- **목표 재생 시간 & 프레임 실시간 동기화**: 1초~30초 범위 슬라이더 바 조절 시 실시간 프레임 수(예: `10초 = 241 frames`)를 자동 계산하여 프롬프트 타임스탬프에 반영.
+- **6대 핵심 구조화 섹션**: `subject_definitions`, `summary`, `retention_analysis`, `detailed_description`, `overall_soundscape`, `non_diegetic_music`.
+- **스마트 분리 출력**: 우측 결과창 및 모달에서 **순수 영문 마스터 프롬프트**와 **한국어 번역 및 연출 해설**을 완전히 분리하여 제공.
+
+---
+
+### 🎥 2. LTX-Video 2.5 Prompt Architect
+> **Lightricks LTX-Video 2.5 차세대 24fps DiT 비디오 생성을 위한 고정밀 연출 디렉터**
+
+![LTX-Video Interface](./assets/screenshots/02_ltx_video.png)
+
+- **5대 전용 모드 지원**:
+  - **`LTX 2.5`**: 6대 필수 요소 기반의 최신 DiT 아키텍처 맞춤형 고정밀 프롬프트.
+  - **`LTX T2V`**: 텍스트 모션 역학 기반 동적 카메라 및 피사체 움직임 생성.
+  - **`LTX I2V`**: 키프레임 이미지의 빛과 구도를 분석하여 움직임 부여.
+  - **`Voice & Audio`**: 인물의 입모양 싱크(Lip-sync) 및 배경 앰비언스 오디오 묘사.
+  - **`Camera Master`**: 패닝, 틸트, 줌, 트래킹, 오빗 등 3D 공간 카메라 궤적 집중 연출.
+- **6대 필수 연출 요소 체계**:
+  1. **Shot Establishment**: 샷 크기, 렌즈 화각(35mm/50mm/85mm), 앵글.
+  2. **Scene Setting & Lighting**: 공간 분위기, 시간대, 광원, 색온도.
+  3. **Action Description**: 피사체의 미세 동작 및 물리적 상호작용.
+  4. **Character Definition**: 인물 외모, 표정, 의상 질감 디테일.
+  5. **Camera Movement**: 카메라의 이동 속도 및 방향성.
+  6. **Audio Description**: 폴리(Foley) 사운드, 음향 효과, 배경 음악 무드.
+
+---
+
+### 🎨 3. KREA 2 Prompt Architect
+> **8K 초고화질 이미지 생성 및 기승전결 시퀀스 스토리보드 기획 스튜디오**
+
+![KREA 2 Interface](./assets/screenshots/03_krea_2.png)
+
+- **3대 세부 모드**:
+  - **`일반 모드`**: 시네마틱 사진, 아이폰 스냅샷, 빈티지 레트로, 디지털 아트, 3D 렌더링, 사이버펑크 등 원클릭 스타일 칩 프리셋 지원.
+  - **`시스템 프롬프트 모드`**: 커스텀 등록된 전문가 시스템 지침을 적용하여 독창적인 아트 스타일 생성.
+  - **`스토리보드 모드`**: 2컷~15컷 연속 시퀀스를 기승전결 흐름에 맞추어 일괄 기획 및 컷 카드 뷰로 시각화.
+- **스토리보드 맞춤형 일괄 복사 툴바 (Batch Copy Toolbar)**:
+  - **`📋 모든 컷 영문 일괄 복사`**: `[Cut 1 (Wide Shot)] ...` 형태로 컷 번호/카메라 앵글과 함께 전체 프롬프트 일괄 복사.
+  - **`📋 순수 프롬프트만 연속 복사`**: 이미지 생성 툴(KREA, FLUX, 미드저니, Stable Diffusion 등)에 바로 붙여넣기 할 수 있도록 순수 프롬프트만 줄바꿈 연속 복사.
+  - **`📋 전체(영문+번역) 복사`**: 영문 프롬프트와 한국어 해설이 모두 포함된 전체 리포트 복사.
+  - **개별 컷 `📋 컷 복사`**: 원하는 특정 컷만 골라 즉시 1-클릭 복사.
+
+---
+
+### 📝 4. 텍스트 가공 도구 (Text Transformer Studio v1.3)
+> **대용량 문서 정제, Krea 2 인물 커스텀 변수 주입, 스마트 청크 분할 및 Diff 비교 스튜디오**
+
+![Text Transformer Studio](./assets/screenshots/04_text_transformer.png)
+
+- **온라인 & 로컬 듀얼 AI 엔진 지원**:
+  - **Google Gemini 온라인**: 최신 Gemini 모델을 활용한 고지능 문맥 교정.
+  - **로컬 LLM (LM Studio / Ollama / vLLM)**: 인터넷 연결 없이 로컬 PC GPU로 보안 및 무제한 가공.
+- **Krea 2 인물 커스텀 & 화풍 정제기**:
+  - **국적 선택**: 한국인(기본값), 동아시아인, 일본인, 서양인 등.
+  - **인종 / 민족 선택**: 동아시아인, 백인, 다문화 등.
+  - **인물 스타일 추가/변경**: 긴 생머리, 뿔테 안경, 메이크업 등 실시간 동적 주입.
+- **대용량 텍스트 자동 청크 분할 (Chunking Processor)**:
+  - 수만 자 이상의 긴 소설, 보고서, 시나리오를 30~50줄 단위로 안전하게 나누어 일괄 가공.
+- **4대 다차원 뷰어**:
+  - **`수정 결과`**: 가공 완료된 텍스트 확인 및 복사.
+  - **`변경 대비 (Diff)`**: 원문과 수정본 간 추가/삭제된 어휘를 시각적으로 하이라이팅.
+  - **`문서 뷰`**: 원문과 수정본을 좌우 2열로 나란히 비교.
+  - **`수정 사유서`**: AI가 어떤 이유로 문장을 교정했는지 상세 보고서 제공.
+
+---
+
+### 💬 5. 무검열 제미나이 (100% Uncensored Gemini Chat Studio)
+> **Google Gemini 공식 다크 UI 1:1 완벽 구현 & 100% 필터링 해제(BLOCK_NONE) 자유 대화**
+
+![Uncensored Gemini Chat](./assets/screenshots/05_uncensored_gemini.png)
+
+- **Gemini 공식 인터페이스 1:1 완벽 구현**:
+  - 좌측 사이드바: 새 채팅, 대화 검색, 이미지/동영상 갤러리 뷰, 라이브러리, Gems(무검열 페르소나), 노트북(프로젝트 폴더) 관리.
+- **100% 무검열 자유 대화 (Zero Censorship)**:
+  - 5대 유해성 세이프티 카테고리 전체 `BLOCK_NONE` 적용.
+  - R등급 성인 드라마, 시네마틱 시나리오, 사실적 인체 묘사, ComfyUI 커스텀 노드 개발 등 제한 없는 대화 지원.
+- **🎨 Imagen 3.0 & Gemini Image 직접 생성 연동**:
+  - 대화창에서 "그려줘", "이미지 생성해줘" 입력 또는 전용 `🎨` 버튼 클릭 시 실시간 이미지 생성.
+  - 4대 화면비(`1:1`, `16:9`, `9:16`, `4:3`) 지원, 클릭 시 고해상도 확대 모달 및 원클릭 다운로드.
+- **멀티모달 이미지 비전 (Vision OCR & 분석)**:
+  - 클립보드 붙여넣기(`Ctrl+V`), 파일 드래그앤드롭, `+` 첨부 버튼으로 이미지를 업로드하여 시각적 질의응답 지원.
+- **다양한 Gemini 모델 실시간 전환**:
+  - `Gemini 3.5 Flash`, `Gemini 3.6 Flash`, `Gemini 2.5 Pro`, `Gemini 3.8 Flash` 등 원하는 모델을 언제든 선택 가능.
+
+---
+
+## 🔒 프라이버시 & 보안 (Local First)
+
+- **API 키 완전 로컬 보관**: 입력한 Google Gemini API 키 및 Hugging Face 토큰은 외부 서버로 전송되지 않으며, 사용자 본인 브라우저의 `localStorage`에만 안전하게 보관됩니다.
+- **순수 클라이언트 사이드 실행**: 일체의 백엔드 서버 없이 브라우저 내에서 직접 구동되므로 데이터 유출 위험이 전혀 없습니다.
+
+---
+
+## ⚡ 빠른 시작 및 실행 방법
+
+### 방법 1. 웹 브라우저에서 바로 사용 (가장 간편함)
+별도 설치 없이 아래 링크를 클릭하면 즉시 사용할 수 있습니다:  
+👉 **[https://solokjd-eng.github.io/AI-Prompt-Studio-and-Text-Transformer/](https://solokjd-eng.github.io/AI-Prompt-Studio-and-Text-Transformer/)**
+
+### 방법 2. 로컬 PC에서 실행하기
+1. 저장소를 다운로드하거나 Git으로 클론합니다:
    ```bash
    git clone https://github.com/solokjd-eng/AI-Prompt-Studio-and-Text-Transformer.git
    ```
-2. [index.html](file:///d:/AI/Antigravity%20IDE/20260903/index.html) 파일을 마우스로 **더블클릭**하거나, Windows 사용자는 [열기.bat](file:///d:/AI/Antigravity%20IDE/20260903/열기.bat)를 실행합니다.
-3. 웹 브라우저에서 바로 사용하기 (GitHub Pages):
-   👉 [https://solokjd-eng.github.io/AI-Prompt-Studio-and-Text-Transformer/](https://solokjd-eng.github.io/AI-Prompt-Studio-and-Text-Transformer/)
+2. 다운로드된 폴더의 `index.html` 파일을 더블클릭하거나, Windows 사용자는 `열기.bat`를 실행합니다.
+
+---
+
+## 🛠️ 기술 스택 (Tech Stack)
+
+- **Frontend**: Single-file HTML5, Vanilla JavaScript (ES6+), Modern Vanilla CSS (Glassmorphism & Dark Design System)
+- **AI Integration**: Google Generative Language API (Gemini Flash & Pro / Imagen 3.0), Local LLM (OpenAI-compatible endpoints)
+- **Design Tokens**: Outfit, Noto Sans KR, Fira Code (Monospace)
+- **Storage**: Browser LocalStorage (Zero-server architecture)
 
 ---
 
 ## 📄 라이선스
-MIT License
+This project is open-source and licensed under the [MIT License](LICENSE).

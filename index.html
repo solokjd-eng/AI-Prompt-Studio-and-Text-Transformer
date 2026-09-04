@@ -3051,6 +3051,39 @@
       font-weight: 700;
       margin-right: 4px;
     }
+    .gemini-send-btn.stop-mode {
+      background: rgba(239, 68, 68, 0.25) !important;
+      border: 1px solid rgba(239, 68, 68, 0.6) !important;
+      color: #f87171 !important;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4) !important;
+      cursor: pointer !important;
+      animation: pulseStopBtn 1.5s infinite alternate ease-in-out;
+    }
+    @keyframes pulseStopBtn {
+      from { transform: scale(1); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+      to { transform: scale(1.08); box-shadow: 0 0 16px rgba(239, 68, 68, 0.8); }
+    }
+    .btn-stop-chat-stream {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 10px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-stop-chat-stream:hover {
+      background: rgba(239, 68, 68, 0.35);
+      border-color: #ef4444;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
     .btn-text-action {
       background: none;
       border: none;
@@ -7461,7 +7494,7 @@
         if (isCustom) {
           topPill.style.display = 'inline-flex';
           if (topIcon) topIcon.textContent = cur.icon || '✨';
-          if (topName) topName.textContent = cur.name + ' 페르소나 ON';
+          if (topName) topName.textContent = cur.name + ' (적용중)';
         } else {
           topPill.style.display = 'none';
         }
@@ -7470,13 +7503,13 @@
       // 3. Greeting View Sync
       if (greetingTitle && greetingSubtitle) {
         if (isCustom) {
-          greetingTitle.innerHTML = '<span style="margin-right:8px;">' + (cur.icon || '✨') + '</span>' + escapeHtml(cur.name) + ' 페르소나 활성화됨';
+          greetingTitle.innerHTML = '<span style="margin-right:8px;">' + (cur.icon || '✨') + '</span>' + escapeHtml(cur.name) + ' (적용중)';
           greetingSubtitle.textContent = cur.description || '선택하신 맞춤형 시스템 지침이 모든 대화에 최우선 적용됩니다.';
           if (greetingBanner) {
             greetingBanner.style.display = 'block';
             greetingBanner.innerHTML = '<div class="active-gem-banner">' +
               '<span style="font-size:14px;">' + (cur.icon || '✨') + '</span> ' +
-              '<span><strong>' + escapeHtml(cur.name) + '</strong> 페르소나 적용 중</span> · ' +
+              '<span><strong>' + escapeHtml(cur.name) + '</strong> 적용 중</span> · ' +
               '<button type="button" class="btn-text-action" id="btnGreetingResetGem">✕ 기본 AI로 해제</button> · ' +
               '<button type="button" class="btn-text-action" id="btnGreetingEditGem">⚙️ 지침 수정</button>' +
             '</div>';
@@ -7498,7 +7531,7 @@
       // 4. Input Placeholder Sync
       if (geminiChatInput) {
         if (isCustom) {
-          geminiChatInput.placeholder = '[' + cur.name + ' 페르소나 활성] 질문하거나 프롬프트 생성을 요청하세요...';
+          geminiChatInput.placeholder = '[' + cur.name + '] 무엇이든 질문하거나 프롬프트 생성을 요청하세요...';
         } else if (chatSelectedEngine === 'off') {
           geminiChatInput.placeholder = 'Gemini에게 무엇이든 질문하세요 (100% 무검열 텍스트 대화)';
         } else {
@@ -9220,13 +9253,38 @@
       }
     }
 
+    var chatAbortController = null;
+
+    function stopGeminiChatResponse() {
+      if (chatAbortController) {
+        chatAbortController.abort();
+        chatAbortController = null;
+      }
+      isGeminiChatResponding = false;
+      const btnSendGeminiChat = document.getElementById('btnSendGeminiChat');
+      const geminiTypingRow = document.getElementById('geminiTypingRow');
+      if (btnSendGeminiChat) {
+        btnSendGeminiChat.classList.remove('stop-mode');
+        btnSendGeminiChat.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>';
+        btnSendGeminiChat.title = '메시지 전송 (Enter)';
+        btnSendGeminiChat.disabled = false;
+      }
+      if (geminiTypingRow) geminiTypingRow.style.display = 'none';
+      showToast('⏹️ 답변 생성이 중단되었습니다.');
+    }
+    window.stopGeminiChatResponse = stopGeminiChatResponse;
+
     async function sendUserChatMessage() {
       const geminiChatInput = document.getElementById('geminiChatInput');
       const chatAttachmentPreview = document.getElementById('chatAttachmentPreview');
-      var text = geminiChatInput?.value.trim() || '';
       
+      if (isGeminiChatResponding) {
+        stopGeminiChatResponse();
+        return;
+      }
+
+      var text = geminiChatInput?.value.trim() || '';
       if (!text && !chatAttachedImageBase64) return;
-      if (isGeminiChatResponding) return;
 
       try {
         var session = geminiChatSessions.find(function(s) { return s.id === activeChatSessionId; });
@@ -9293,16 +9351,28 @@
 
       var chatStartTime = Date.now();
       var chatTimerInterval = null;
+      chatAbortController = new AbortController();
 
       isGeminiChatResponding = true;
-      if (btnSendGeminiChat) btnSendGeminiChat.disabled = true;
+      if (btnSendGeminiChat) {
+        btnSendGeminiChat.disabled = false;
+        btnSendGeminiChat.classList.add('stop-mode');
+        btnSendGeminiChat.innerHTML = '<span style="display:inline-flex; width:13px; height:13px; background:#ef4444; border-radius:2px; box-shadow:0 0 6px #ef4444;"></span>';
+        btnSendGeminiChat.title = '답변 생성 중단 (Stop)';
+      }
+
       var activeGem = customGems.find(function(g) { return g.id === activeGemId; });
       var activeGemDisplayName = (activeGem && activeGem.id !== 'gem_default') ? ((activeGem.icon || '✨') + ' ' + activeGem.name) : 'Gemini';
 
       if (geminiTypingRow) {
         geminiTypingRow.style.display = 'flex';
         var typingTextEl = geminiTypingRow.querySelector('.typing-text-wrap') || geminiTypingRow;
-        typingTextEl.innerHTML = '<div class="typing-dots-loader"><span></span><span></span><span></span></div> <span class="typing-label-text">' + escapeHtml(activeGemDisplayName) + '가 답변을 작성 중입니다... <span class="timer-live-badge">⏱️ 0.0s</span></span>';
+        typingTextEl.innerHTML = '<div class="typing-dots-loader"><span></span><span></span><span></span></div> <span class="typing-label-text">' + escapeHtml(activeGemDisplayName) + '가 답변을 작성 중입니다... <span class="timer-live-badge">⏱️ 0.0s</span></span> <button type="button" class="btn-stop-chat-stream" id="btnStopChatLive" title="생성 즉시 중단">⏹️ 중단</button>';
+        
+        document.getElementById('btnStopChatLive')?.addEventListener('click', function(e) {
+          e.stopPropagation();
+          stopGeminiChatResponse();
+        });
       }
       if (geminiMessagesContainer) geminiMessagesContainer.scrollTop = geminiMessagesContainer.scrollHeight;
 
@@ -9468,7 +9538,8 @@
             var res = await fetch(streamUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
+              body: JSON.stringify(payload),
+              signal: chatAbortController ? chatAbortController.signal : undefined
             });
 
             if (!res.ok) {
@@ -9534,6 +9605,10 @@
 
           } catch (err) {
             lastErr = err;
+            if (err.name === 'AbortError' || chatAbortController?.signal?.aborted) {
+              console.log('Stream aborted by user on model ' + model);
+              break;
+            }
             console.warn('Streaming with model ' + model + ' failed:', err.message);
             if (liveBubbleElement && liveBubbleElement.parentElement) {
               liveBubbleElement.parentElement.remove();
@@ -9570,15 +9645,38 @@
           clearInterval(chatTimerInterval);
           chatTimerInterval = null;
         }
-        showToast('대화 오류: ' + err.message);
-        console.error('Chat error:', err);
+        if (err.name === 'AbortError' || chatAbortController?.signal?.aborted) {
+          console.log('Chat response aborted by user.');
+          if (accumulatedText) {
+            var elapsedSecAborted = ((Date.now() - chatStartTime) / 1000).toFixed(1);
+            session.messages.push({
+              role: 'model',
+              text: accumulatedText + '\n\n*(⏹️ 생성이 사용자에 의해 중단되었습니다)*',
+              latency: elapsedSecAborted,
+              gemName: (activeGem && activeGem.id !== 'gem_default') ? activeGem.name : null,
+              gemIcon: (activeGem && activeGem.id !== 'gem_default') ? activeGem.icon : null,
+              timestamp: Date.now()
+            });
+            saveChatSessions();
+            renderActiveChatMessages();
+          }
+        } else {
+          showToast('대화 오류: ' + err.message);
+          console.error('Chat error:', err);
+        }
       } finally {
         if (chatTimerInterval) {
           clearInterval(chatTimerInterval);
           chatTimerInterval = null;
         }
         isGeminiChatResponding = false;
-        if (btnSendGeminiChat) btnSendGeminiChat.disabled = false;
+        chatAbortController = null;
+        if (btnSendGeminiChat) {
+          btnSendGeminiChat.disabled = false;
+          btnSendGeminiChat.classList.remove('stop-mode');
+          btnSendGeminiChat.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>';
+          btnSendGeminiChat.title = '메시지 전송 (Enter)';
+        }
         if (geminiTypingRow) geminiTypingRow.style.display = 'none';
         if (geminiMessagesContainer) geminiMessagesContainer.scrollTop = geminiMessagesContainer.scrollHeight;
       }

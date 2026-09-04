@@ -3320,11 +3320,11 @@
   <div class="modal-backdrop" id="apiModal">
     <div class="modal-box">
       <div class="modal-header">
-        <span class="modal-title">🔑 Google Gemini API 키 설정</span>
+        <span class="modal-title">🔑 AI API 키 및 고화질 엔진 설정</span>
         <button class="btn-close-modal" id="btnCloseApiModal">✕</button>
       </div>
       <div class="form-group">
-        <label class="form-label">Gemini API Key</label>
+        <label class="form-label">Google Gemini API Key (대화 & 프롬프트 최적화용)</label>
         <input type="password" class="form-input" id="apiKeyInput" placeholder="AIzaSy...">
         <span style="font-size: 11px; color: var(--text-dim);">API 키는 외부 서버로 전송되지 않으며 사용자의 브라우저 LocalStorage에만 안전하게 저장됩니다.</span>
       </div>
@@ -3336,6 +3336,14 @@
           <option value="gemini-3.1-pro-preview">🧠 3.1 Pro (고급 추론 및 분석)</option>
           <option value="gemini-3.5-flash">💡 확장된 사고 모델 (Thinking Mode)</option>
         </select>
+      </div>
+      <div class="form-group" style="margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>🤗 Hugging Face Token (FLUX.1-dev 28스텝 마스터 4K용)</span>
+          <a href="https://huggingface.co/settings/tokens" target="_blank" style="color: #60a5fa; font-size: 11px; text-decoration: underline;">무료 토큰 발급 ↗</a>
+        </label>
+        <input type="password" class="form-input" id="hfTokenInput" placeholder="hf_...">
+        <span style="font-size: 11px; color: var(--text-dim);">무료 발급 토큰을 입력하시면 4스텝 압축 없는 <strong>FLUX.1-dev (28스텝 마스터 풀버전)</strong> 및 <strong>SDXL 1.0</strong> 8K 극상 화질로 즉시 생성됩니다.</span>
       </div>
       <div class="modal-footer">
         <button class="btn-action-sm" id="btnTestKey">⚡ 연결 테스트</button>
@@ -3625,6 +3633,7 @@
       translateKorean: true,
       apiKey: localStorage.getItem('gemini_api_key') || '',
       selectedGeminiModel: localStorage.getItem('gemini_model') || 'gemini-3.5-flash',
+      hfToken: localStorage.getItem('hf_api_token') || '',
       attachedImages: [],
       attachedVideos: [],
       attachedAudios: [],
@@ -5117,16 +5126,27 @@
     }
 
     // API Key Modal
-    btnOpenApiModal.addEventListener('click', function() { apiModal.style.display = 'flex'; });
+    btnOpenApiModal.addEventListener('click', function() {
+      apiModal.style.display = 'flex';
+      var hfInput = document.getElementById('hfTokenInput');
+      if (hfInput) hfInput.value = state.hfToken || '';
+    });
     btnCloseApiModal.addEventListener('click', function() { apiModal.style.display = 'none'; });
     btnSaveApiKey.addEventListener('click', function() {
       state.apiKey = apiKeyInput.value.trim();
       state.selectedGeminiModel = modelSelect.value;
       localStorage.setItem('gemini_api_key', state.apiKey);
       localStorage.setItem('gemini_model', state.selectedGeminiModel);
+      
+      var hfInput = document.getElementById('hfTokenInput');
+      if (hfInput) {
+        state.hfToken = hfInput.value.trim();
+        localStorage.setItem('hf_api_token', state.hfToken);
+      }
+
       updateApiStatus();
       apiModal.style.display = 'none';
-      showToast('Gemini API 키가 저장되었습니다.');
+      showToast('API 키 및 고화질 엔진 설정이 저장되었습니다.');
     });
 
         btnTestKey.addEventListener('click', async function() {
@@ -6326,6 +6346,47 @@
           return "beautiful masterpiece, photorealistic, 8k resolution, cinematic lighting";
         }
         return translated + ", photorealistic photograph, 8k resolution, highly detailed, cinematic lighting";
+      }
+
+      // Tier 0: Hugging Face Serverless Inference API (FLUX.1-dev 28-step Master Quality / SDXL 1.0)
+      if (state.hfToken) {
+        try {
+          var finalEnglishPrompt0 = await getEnhancedEnglishPrompt(userPrompt);
+          var activeEngine0 = chatSelectedEngine || 'flux-realism';
+          var hfModelName = (activeEngine0 === 'turbo' ? 'stabilityai/stable-diffusion-xl-base-1.0' : 'black-forest-labs/FLUX.1-dev');
+          var hfUrl = "https://api-inference.huggingface.co/models/" + hfModelName;
+
+          var hfRes = await fetch(hfUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + state.hfToken,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ inputs: finalEnglishPrompt0 })
+          });
+
+          if (hfRes.ok) {
+            var blob0 = await hfRes.blob();
+            var b64Data0 = await new Promise(function(resolve, reject) {
+              var reader = new FileReader();
+              reader.onloadend = function() { resolve(reader.result); };
+              reader.onerror = reject;
+              reader.readAsDataURL(blob0);
+            });
+
+            return {
+              base64: b64Data0,
+              engine: 'Hugging Face ' + (hfModelName.includes('FLUX') ? 'FLUX.1-dev (28스텝 마스터)' : 'SDXL 1.0 (4K)'),
+              aspectRatio: targetRatio,
+              prompt: userPrompt,
+              enhancedPrompt: finalEnglishPrompt0
+            };
+          } else {
+            console.warn('HF inference returned status ' + hfRes.status + ', moving to next tiers');
+          }
+        } catch (hfErr) {
+          console.warn('HF inference attempt failed, continuing:', hfErr);
+        }
       }
 
       // Tier 1: Google Imagen 3.0 API (if user has enabled billing / paid tier)

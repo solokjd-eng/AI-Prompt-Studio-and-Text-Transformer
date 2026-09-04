@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI 프롬프트 생성기 & 텍스트 가공 스튜디오 (MiniMax H3 & LTX-Video & KREA 2 & Text Transformer)</title>
   
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2310b981'/%3E%3Cstop offset='50%25' stop-color='%2306b6d4'/%3E%3Cstop offset='100%25' stop-color='%236366f1'/%3E%3C/linearGradient%3E%3ClinearGradient id='star' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='100%25' stop-color='%23e0e7ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%230b0f19'/%3E%3Crect x='3' y='3' width='58' height='58' rx='14' fill='url(%23bg)'/%3E%3Crect x='5' y='5' width='54' height='54' rx='12' fill='%230d1322' opacity='0.4'/%3E%3Cpath d='M32 10 Q32 28 14 32 Q32 32 32 50 Q32 32 50 32 Q32 32 32 10 Z' fill='url(%23star)'/%3E%3Cpath d='M47 13 Q47 20 40 21 Q47 21 47 28 Q47 21 54 21 Q47 21 47 13 Z' fill='%23ffffff' opacity='0.95'/%3E%3Ccircle cx='18' cy='46' r='3' fill='%2338bdf8' opacity='0.9'/%3E%3C/svg%3E">
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml">
+  
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2917,6 +2921,72 @@
       padding: 30px 0;
     }
 
+    /* Latency Badge & Live Stopwatch Styles */
+    .latency-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Fira Code', monospace;
+      letter-spacing: 0.2px;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+      animation: fadeInBadge 0.3s ease-out;
+    }
+    .latency-badge.amber {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+    }
+    .latency-badge.cyan {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: rgba(6, 182, 212, 0.3);
+      color: #22d3ee;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+    }
+    @keyframes fadeInBadge {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .chat-latency-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+    }
+    .timer-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+      font-weight: 700;
+      font-size: 11px;
+      color: #38bdf8;
+      margin-left: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      animation: pulseLiveBadge 1.2s infinite alternate ease-in-out;
+    }
+    @keyframes pulseLiveBadge {
+      from { opacity: 0.85; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1.02); text-shadow: 0 0 8px rgba(56, 189, 248, 0.8); }
+    }
+
 </style>
 </head>
 <body>
@@ -5196,7 +5266,12 @@
 
       var outputVal = tfOutputArea.value;
       var outLines = outputVal ? outputVal.split('\n').length : 0;
-      tfOutputStats.textContent = "CHARS: " + outputVal.length + " | LINES: " + outLines;
+      var statsText = "CHARS: " + outputVal.length + " | LINES: " + outLines;
+      if (state.tfLastLatency) {
+        tfOutputStats.innerHTML = statsText + ' <span class="latency-badge" style="margin-left:8px;">⚡ ' + state.tfLastLatency + '초 소요</span>';
+      } else {
+        tfOutputStats.textContent = statsText;
+      }
     }
 
     function switchTfOutputTab(tab) {
@@ -5240,6 +5315,8 @@
       return isRefusalResponse(text);
     }
 
+    var tfTimerInterval = null;
+
     async function executeTextTransformation() {
       var input = tfInputArea.value.trim();
       if (!input) {
@@ -5259,7 +5336,9 @@
 
       var combinedInstruction = userInst ? (finalSystemPrompt + "\n\n【추가 세부 지시사항】\n" + userInst) : finalSystemPrompt;
 
-      setTransformerLoading(true);
+      var startTime = Date.now();
+      state.tfLastLatency = null;
+      setTransformerLoading(true, startTime);
       tfOutputArea.value = '';
 
       var lines = input.split(/\r?\n/);
@@ -5295,7 +5374,10 @@
             updateTransformerStats();
           }
 
-          showToast("✨ 총 " + totalLines + "줄 (" + totalChunks + "개 청크) 가공이 완료되었습니다!");
+          var elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
+          state.tfLastLatency = elapsedSec;
+          updateTransformerStats();
+          showToast("✨ 총 " + totalLines + "줄 (" + totalChunks + "개 청크) 가공이 완료되었습니다! (" + elapsedSec + "초)");
 
         } else {
           // Single direct call
@@ -5307,8 +5389,11 @@
             result = await callGeminiAPI(input, combinedInstruction);
           }
           tfOutputArea.value = result.trim();
+          
+          var elapsedSec2 = ((Date.now() - startTime) / 1000).toFixed(1);
+          state.tfLastLatency = elapsedSec2;
           updateTransformerStats();
-          showToast('✨ 텍스트 가공이 완료되었습니다!');
+          showToast('✨ 텍스트 가공이 완료되었습니다! (' + elapsedSec2 + '초)');
         }
 
         // Save to History
@@ -5316,23 +5401,42 @@
           model: 'transformer',
           style: activePreset.name,
           prompt: tfOutputArea.value,
-          trans: "[원본 " + input.length + "자 -> 가공 " + tfOutputArea.value.length + "자]"
+          trans: "[원본 " + input.length + "자 -> 가공 " + tfOutputArea.value.length + "자 | 소요: " + (state.tfLastLatency || '0.0') + "초]"
         });
 
       } catch (err) {
         showToast("가공 오류: " + err.message, err.message);
         console.error('Transformer error:', err);
       } finally {
+        if (tfTimerInterval) {
+          clearInterval(tfTimerInterval);
+          tfTimerInterval = null;
+        }
         setTransformerLoading(false);
         tfChunkProgressBar.style.display = 'none';
       }
     }
 
-    function setTransformerLoading(loading) {
+    function setTransformerLoading(loading, startTime) {
       state.tfIsProcessing = loading;
       btnExecuteTransformer.disabled = loading;
       tfBtnIcon.textContent = loading ? '⏳' : '✨';
-      tfBtnText.textContent = loading ? '가공 진행 중...' : '가공 시작';
+      
+      if (tfTimerInterval) {
+        clearInterval(tfTimerInterval);
+        tfTimerInterval = null;
+      }
+
+      if (loading) {
+        var start = startTime || Date.now();
+        tfBtnText.innerHTML = '가공 진행 중... <span class="timer-live-badge">⏱️ 0.0s</span>';
+        tfTimerInterval = setInterval(function() {
+          var sec = ((Date.now() - start) / 1000).toFixed(1);
+          tfBtnText.innerHTML = '가공 진행 중... <span class="timer-live-badge">⏱️ ' + sec + 's</span>';
+        }, 100);
+      } else {
+        tfBtnText.textContent = '가공 시작';
+      }
     }
 
     async function callLocalLLM(text, systemInstruction) {
@@ -5608,6 +5712,8 @@
     /* -------------------------------------------------------------
        PROMPT GENERATOR EXECUTION (KREA / MINIMAX / LTX)
        ------------------------------------------------------------- */
+    var generateTimerInterval = null;
+
     btnGenerate.addEventListener('click', async function() {
       var input = userPromptInput.value.trim();
       if (!input && state.attachedImages.length === 0) {
@@ -5615,8 +5721,18 @@
         return;
       }
 
+      var startTime = Date.now();
       btnGenerate.disabled = true;
-      generateBtnText.innerHTML = '<span class="spinner"></span> 프롬프트 생성 중...';
+      generateBtnText.innerHTML = '<span class="spinner"></span> 프롬프트 생성 중... <span class="timer-live-badge">⏱️ 0.0s</span>';
+
+      if (generateTimerInterval) {
+        clearInterval(generateTimerInterval);
+        generateTimerInterval = null;
+      }
+      generateTimerInterval = setInterval(function() {
+        var sec = ((Date.now() - startTime) / 1000).toFixed(1);
+        generateBtnText.innerHTML = '<span class="spinner"></span> 프롬프트 생성 중... <span class="timer-live-badge">⏱️ ' + sec + 's</span>';
+      }, 100);
 
       try {
         var systemInstruction = getPromptAppSystemInstruction();
@@ -5628,13 +5744,18 @@
           promptResponse = await callGeminiPromptGenerate(input, systemInstruction, false);
         }
 
-        renderPromptOutput(promptResponse);
-        showToast('✨ 프롬프트가 성공적으로 생성되었습니다!');
+        var elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
+        renderPromptOutput(promptResponse, elapsedSec);
+        showToast('✨ 프롬프트가 성공적으로 생성되었습니다! (' + elapsedSec + '초)');
 
       } catch (err) {
-        showToast("오류: " + err.message);
+        showToast("오류: " + err.message, err.message);
         console.error(err);
       } finally {
+        if (generateTimerInterval) {
+          clearInterval(generateTimerInterval);
+          generateTimerInterval = null;
+        }
         btnGenerate.disabled = false;
         updatePromptInputPlaceholder();
       }
@@ -5875,10 +5996,12 @@
       return matches.length > 0 ? matches : null;
     }
 
-    function renderPromptOutput(raw) {
+    function renderPromptOutput(raw, latencySec) {
       emptyState.style.display = 'none';
       dynamicResults.style.display = 'flex';
       dynamicResults.innerHTML = '';
+
+      var latencyBadgeHtml = latencySec ? ('<span class="latency-badge">⚡ ' + latencySec + '초 소요</span>') : '';
 
       var cuts = null;
       if (state.activeModel === 'krea' && state.kreaSubMode === 'storyboard') {
@@ -5914,7 +6037,10 @@
         dynamicResults.innerHTML = [
           '<div class="storyboard-toolbar">',
             '<div class="storyboard-toolbar-top">',
-              '<div class="storyboard-summary-badge">🎬 총 ' + cuts.length + '개 컷 스토리보드 생성 완료</div>',
+              '<div class="storyboard-summary-badge" style="display:flex;align-items:center;gap:8px;">',
+                '<span>🎬 총 ' + cuts.length + '개 컷 스토리보드 생성 완료</span>',
+                latencyBadgeHtml,
+              '</div>',
               '<div class="storyboard-btn-group">',
                 '<button class="btn-story-action primary" id="btnCopyAllStoryboardEng">📋 모든 컷 영문 일괄 복사</button>',
                 '<button class="btn-story-action" id="btnCopyAllStoryboardPlain">📋 순수 프롬프트만 연속 복사</button>',
@@ -5971,12 +6097,13 @@
           english: allEngFormatted,
           korean: allKor,
           plain: allEngPlain,
-          full: allFull
+          full: allFull,
+          latency: latencySec
         };
 
         saveHistoryItem({
           model: 'krea',
-          style: '스토리보드 (' + cuts.length + '컷)',
+          style: '스토리보드 (' + cuts.length + '컷' + (latencySec ? ' | ' + latencySec + 's' : '') + ')',
           prompt: allEngFormatted,
           trans: allKor
         });
@@ -5987,12 +6114,15 @@
       var eng = split.english;
       var kor = split.korean;
 
-      state.lastOutput = { english: eng, korean: kor };
+      state.lastOutput = { english: eng, korean: kor, latency: latencySec };
 
       dynamicResults.innerHTML = [
         '<div class="result-box">',
           '<div class="result-header-row">',
-            '<span class="result-label">✨ Master English Prompt</span>',
+            '<div style="display:flex;align-items:center;gap:8px;">',
+              '<span class="result-label">✨ Master English Prompt</span>',
+              latencyBadgeHtml,
+            '</div>',
             '<button class="btn-action-sm" id="btnCopyEng">📋 복사</button>',
           '</div>',
           '<div class="result-text-area">' + escapeHtml(eng) + '</div>',
@@ -6019,7 +6149,7 @@
 
       saveHistoryItem({
         model: state.activeModel,
-        style: state.activeModel === 'minimax' ? state.minimaxStyle : state.activeModel === 'ltx' ? state.ltxStyle : state.kreaSubMode,
+        style: (state.activeModel === 'minimax' ? state.minimaxStyle : state.activeModel === 'ltx' ? state.ltxStyle : state.kreaSubMode) + (latencySec ? ' (' + latencySec + 's)' : ''),
         prompt: eng,
         trans: kor
       });
@@ -7691,10 +7821,11 @@
       var enhancedPrompt = card.enhancedPrompt || '';
       var engine = card.engine || 'Imagen 3';
       var ratio = card.aspectRatio || '1:1';
+      var latencyTag = card.latency ? (' <span class="chat-latency-tag" style="margin-left:6px; background:rgba(0,0,0,0.5); border-color:rgba(52,211,153,0.4); color:#34d399;">⚡ ' + card.latency + 's</span>') : '';
 
       return '<div class="gemini-image-card" data-card-idx="' + idx + '">' +
         '<div class="gemini-image-media-wrap" onclick="openImageLightbox(' + idx + ')">' +
-          '<div class="gemini-image-overlay-badge">🎨 ' + escapeHtml(engine) + ' <span class="ratio-tag" style="margin-left: 4px;">' + escapeHtml(ratio) + '</span></div>' +
+          '<div class="gemini-image-overlay-badge">🎨 ' + escapeHtml(engine) + ' <span class="ratio-tag" style="margin-left: 4px;">' + escapeHtml(ratio) + '</span>' + latencyTag + '</div>' +
           '<img src="' + b64 + '" alt="생성된 이미지">' +
           '<div class="gemini-image-zoom-hint">🔍 클릭하여 크게 보기</div>' +
         '</div>' +
@@ -7774,6 +7905,7 @@
             '<div class="msg-avatar user">U</div>' +
           '</div>';
         } else {
+          var latencyTag = msg.latency ? ('<span class="chat-latency-tag">⚡ ' + msg.latency + 's</span>') : '';
           return '<div class="gemini-msg-row model">' +
             '<div class="msg-avatar bot">' +
               '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="url(#geminiGrad)" d="M12 2C12 7.5 7.5 12 2 12C7.5 12 12 16.5 12 22C12 16.5 16.5 12 22 12C16.5 12 12 7.5 12 2Z"/></svg>' +
@@ -7782,6 +7914,7 @@
               (msg.text ? formatChatMarkdown(msg.text) : '') +
               (msg.imageCard ? renderGeneratedImageCardHtml(msg.imageCard, idx) : '') +
               '<div class="msg-actions-row">' +
+                latencyTag +
                 '<button class="btn-msg-action" data-copy-msg="' + idx + '">📋 복사</button>' +
                 '<button class="btn-msg-action" data-retry-msg="' + idx + '">🔄 다시 생성</button>' +
               '</div>' +
@@ -8319,6 +8452,8 @@
 
       var targetRatio = customRatio || chatSelectedRatio || '1:1';
       var cleanPrompt = cleanImagePrompt(rawPrompt);
+      var imgStartTime = Date.now();
+      var imgTimerInterval = null;
 
       // Create live loading skeleton row in chat
       var loadingRow = document.createElement('div');
@@ -8328,7 +8463,7 @@
         '<div class="gemini-msg-bubble model">' +
           '<div class="gemini-image-loading-card">' +
             '<div class="image-loading-spinner-ring"></div>' +
-            '<div class="image-loading-title">🎨 AI 엔진으로 이미지 생성 중...</div>' +
+            '<div class="image-loading-title" id="geminiLiveImageLoadingTitle">🎨 AI 엔진으로 이미지 생성 중... <span class="timer-live-badge">⏱️ 0.0s</span></div>' +
             '<div class="image-loading-desc">프롬프트 최적화 및 ' + targetRatio + ' 비율을 적용하여 이미지를 렌더링하고 있습니다.</div>' +
           '</div>' +
         '</div>';
@@ -8336,8 +8471,24 @@
       geminiMessageThread.appendChild(loadingRow);
       if (geminiMessagesContainer) geminiMessagesContainer.scrollTop = geminiMessagesContainer.scrollHeight;
 
+      imgTimerInterval = setInterval(function() {
+        var sec = ((Date.now() - imgStartTime) / 1000).toFixed(1);
+        var titleEl = document.getElementById('geminiLiveImageLoadingTitle');
+        if (titleEl) {
+          titleEl.innerHTML = '🎨 AI 엔진으로 이미지 생성 중... <span class="timer-live-badge">⏱️ ' + sec + 's</span>';
+        }
+      }, 100);
+
       try {
         var imageResult = await generateGeminiImage(cleanPrompt, targetRatio, imageBase64);
+
+        if (imgTimerInterval) {
+          clearInterval(imgTimerInterval);
+          imgTimerInterval = null;
+        }
+
+        var elapsedSec = ((Date.now() - imgStartTime) / 1000).toFixed(1);
+        imageResult.latency = elapsedSec;
 
         // Remove loading skeleton
         var curLoading = document.getElementById('geminiLiveImageLoadingRow');
@@ -8348,14 +8499,20 @@
           role: 'model',
           text: '요청하신 이미지를 생성했습니다! ✨',
           imageCard: imageResult,
+          latency: elapsedSec,
           timestamp: Date.now()
         });
 
         saveChatSessions();
         renderActiveChatMessages();
-        showToast('🎨 이미지 생성이 완료되었습니다!');
+        showToast('🎨 이미지 생성이 완료되었습니다! (' + elapsedSec + '초)');
 
       } catch (err) {
+        if (imgTimerInterval) {
+          clearInterval(imgTimerInterval);
+          imgTimerInterval = null;
+        }
+
         var curLoading2 = document.getElementById('geminiLiveImageLoadingRow');
         if (curLoading2) curLoading2.remove();
 
@@ -8369,6 +8526,10 @@
         renderActiveChatMessages();
         showToast('이미지 생성 실패: ' + err.message);
       } finally {
+        if (imgTimerInterval) {
+          clearInterval(imgTimerInterval);
+          imgTimerInterval = null;
+        }
         isGeminiChatResponding = false;
         if (btnSendGeminiChat) btnSendGeminiChat.disabled = false;
         if (geminiMessagesContainer) geminiMessagesContainer.scrollTop = geminiMessagesContainer.scrollHeight;
@@ -8446,10 +8607,25 @@
         return;
       }
 
+      var chatStartTime = Date.now();
+      var chatTimerInterval = null;
+
       isGeminiChatResponding = true;
       if (btnSendGeminiChat) btnSendGeminiChat.disabled = true;
-      if (geminiTypingRow) geminiTypingRow.style.display = 'flex';
+      if (geminiTypingRow) {
+        geminiTypingRow.style.display = 'flex';
+        var typingTextEl = geminiTypingRow.querySelector('.typing-text-wrap') || geminiTypingRow;
+        typingTextEl.innerHTML = '<div class="typing-dots-loader"><span></span><span></span><span></span></div> <span class="typing-label-text">Gemini가 답변을 작성 중입니다... <span class="timer-live-badge">⏱️ 0.0s</span></span>';
+      }
       if (geminiMessagesContainer) geminiMessagesContainer.scrollTop = geminiMessagesContainer.scrollHeight;
+
+      chatTimerInterval = setInterval(function() {
+        var sec = ((Date.now() - chatStartTime) / 1000).toFixed(1);
+        var badgeEl = geminiTypingRow?.querySelector('.timer-live-badge');
+        if (badgeEl) {
+          badgeEl.textContent = '⏱️ ' + sec + 's';
+        }
+      }, 100);
 
       var activeGem = customGems.find(function(g) { return g.id === activeGemId; });
       var activeNotebook = customNotebooks.find(function(nb) { return nb.id === activeNotebookId; });
@@ -8686,10 +8862,18 @@
           throw lastErr || new Error('Gemini로부터 실시간 응답을 받지 못했습니다.');
         }
 
+        if (chatTimerInterval) {
+          clearInterval(chatTimerInterval);
+          chatTimerInterval = null;
+        }
+
+        var elapsedSec = ((Date.now() - chatStartTime) / 1000).toFixed(1);
+
         // Save completed message to session
         session.messages.push({
           role: 'model',
           text: accumulatedText,
+          latency: elapsedSec,
           timestamp: Date.now()
         });
 
@@ -8697,9 +8881,17 @@
         renderActiveChatMessages();
 
       } catch (err) {
+        if (chatTimerInterval) {
+          clearInterval(chatTimerInterval);
+          chatTimerInterval = null;
+        }
         showToast('대화 오류: ' + err.message);
         console.error('Chat error:', err);
       } finally {
+        if (chatTimerInterval) {
+          clearInterval(chatTimerInterval);
+          chatTimerInterval = null;
+        }
         isGeminiChatResponding = false;
         if (btnSendGeminiChat) btnSendGeminiChat.disabled = false;
         if (geminiTypingRow) geminiTypingRow.style.display = 'none';
